@@ -413,6 +413,12 @@ const hideLoading=()=>document.getElementById('loading-overlay').classList.remov
 const fmtTime=d=>d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 
 // ===== GOOGLE AUTH =====
+// Helper: key ตาม user id เพื่อไม่ปนกันระหว่าง user
+function userKey(suffix){
+  const uid=userInfo&&userInfo.sub?userInfo.sub:'default';
+  return `sn6_${uid}_${suffix}`;
+}
+
 function signInWithGoogle(){
   showLoading('กำลังเชื่อมต่อ Google...');
   const client=google.accounts.oauth2.initTokenClient({
@@ -420,8 +426,10 @@ function signInWithGoogle(){
     callback:async resp=>{
       if(resp.error){hideLoading();showToast('❌ ล็อกอินไม่สำเร็จ: '+resp.error);return;}
       accessToken=resp.access_token;
-      localStorage.setItem('gat',accessToken);
+      // ดึง userInfo ก่อน — จำเป็นเพื่อสร้าง key ที่แยกตาม user
       await fetchUserInfo();
+      // โหลด driveFileId ของ user นี้โดยเฉพาะ
+      driveFileId=localStorage.getItem(userKey('fid'))||null;
       await loadFromDrive();
       showApp();
       hideLoading();
@@ -435,7 +443,7 @@ async function fetchUserInfo(){
     const r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
     if(!r.ok)throw new Error();
     userInfo=await r.json();
-    localStorage.setItem('gui',JSON.stringify(userInfo));
+    localStorage.setItem('gui',JSON.stringify(userInfo)); // เก็บ userInfo (ไม่มี token) ไว้แสดง UI
     applyUserUI();
   }catch(e){console.warn('userinfo failed');}
 }
@@ -456,8 +464,13 @@ function signOut(){
   closeModal('user-modal');
   if(!confirm('ต้องการออกจากระบบ?\nข้อมูลใน Drive ยังคงอยู่'))return;
   try{google.accounts.oauth2.revoke(accessToken,()=>{});}catch(e){}
+  // ลบ key เฉพาะของ user นี้ ไม่กระทบ user อื่น
+  if(userInfo&&userInfo.sub){
+    localStorage.removeItem(userKey('fid'));
+    localStorage.removeItem(userKey('data'));
+  }
   accessToken=null;userInfo=null;driveFileId=null;
-  localStorage.removeItem('gat');localStorage.removeItem('gui');localStorage.removeItem('gfid');
+  localStorage.removeItem('gui');
   if(autoSyncTimer){clearInterval(autoSyncTimer);autoSyncTimer=null;}
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -476,12 +489,12 @@ async function loadFromDrive(){
   if(!accessToken){setDriveStatus('offline','ไม่ได้เชื่อมต่อ');return;}
   setDriveStatus('syncing','กำลังโหลดจาก Drive...');
   try{
-    let fid=localStorage.getItem('gfid')||null;
+    let fid=driveFileId||localStorage.getItem(userKey('fid'))||null;
     if(!fid){
       const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name="${DRIVE_FILE_NAME}" and trashed=false&spaces=drive&fields=files(id)`,{headers:{Authorization:'Bearer '+accessToken}});
       if(!r.ok)throw new Error('search:'+r.status);
       const d=await r.json();
-      if(d.files&&d.files.length>0){fid=d.files[0].id;driveFileId=fid;localStorage.setItem('gfid',fid);}
+      if(d.files&&d.files.length>0){fid=d.files[0].id;driveFileId=fid;localStorage.setItem(userKey('fid'),fid);}
     } else {driveFileId=fid;}
 
     if(driveFileId){
@@ -518,13 +531,14 @@ async function syncToDrive(){
       });
       if(!meta.ok)throw new Error('create:'+meta.status);
       const created=await meta.json();
-      driveFileId=created.id;localStorage.setItem('gfid',driveFileId);
+      driveFileId=created.id;
+      localStorage.setItem(userKey('fid'),driveFileId); // แยก key ตาม user
     }
     const up=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,{
       method:'PATCH',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body
     });
     if(!up.ok)throw new Error('upload:'+up.status);
-    localStorage.setItem('smartnana_data',body);
+    localStorage.setItem(userKey('data'),body); // backup แยกตาม user
     lastSyncTime=new Date();
     setDriveStatus('synced','ซิงค์แล้ว',fmtTime(lastSyncTime));
     document.getElementById('user-modal-drive-info').textContent=`ไฟล์: ${DRIVE_FILE_NAME} · บันทึก ${fmtTime(lastSyncTime)}`;
@@ -532,7 +546,7 @@ async function syncToDrive(){
   }catch(e){
     console.error('syncToDrive',e);
     setDriveStatus('error','ซิงค์ไม่สำเร็จ — บันทึกในเครื่องแทน');
-    localStorage.setItem('smartnana_data',JSON.stringify(buildSaveData()));
+    localStorage.setItem(userKey('data'),JSON.stringify(buildSaveData())); // backup แยกตาม user
     showToast('⚠️ ซิงค์ Drive ไม่ได้ บันทึกในเครื่องแทน');
   }
   document.getElementById('sync-btn').textContent='☁️';
@@ -560,7 +574,10 @@ function applyLoadedData(d){
 }
 
 function loadFromLocal(){
-  try{const r=localStorage.getItem('smartnana_data');if(r)applyLoadedData(JSON.parse(r));}catch(e){}
+  try{
+    const r=localStorage.getItem(userKey('data'));
+    if(r)applyLoadedData(JSON.parse(r));
+  }catch(e){}
 }
 
 function getSchoolData(){
@@ -728,16 +745,15 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catc
 
 // ===== INIT =====
 window.addEventListener('load',async()=>{
-  const sat=localStorage.getItem('gat'),sui=localStorage.getItem('gui');
-  if(sat&&sui){
-    accessToken=sat;userInfo=JSON.parse(sui);
-    driveFileId=localStorage.getItem('gfid')||null;
-    showLoading('กำลังโหลดข้อมูลจาก Google Drive...');
-    await loadFromDrive();
-    showApp();hideLoading();
+  // Access token หมดอายุใน ~1 ชม. — ไม่ cache ไว้ข้ามเซสชัน
+  // เก็บแค่ userInfo (ชื่อ/รูป) เพื่อแสดง UI ระหว่างรอ login
+  const sui=localStorage.getItem('gui');
+  if(sui){
+    try{userInfo=JSON.parse(sui);}catch(e){}
   }
-  // Restore logo from local cache
-  try{const r=localStorage.getItem('smartnana_data');if(r){const d=JSON.parse(r);if(d.schoolLogo){schoolLogo=d.schoolLogo;setTimeout(()=>applyLogo(schoolLogo),400);}}}catch(e){}
+  // ต้อง login ใหม่ทุกครั้งเพื่อรับ token ใหม่ที่ใช้งานได้
+  // แสดงหน้า login ปกติ (ไม่ข้ามไป)
+  localStorage.removeItem('gat'); // ลบ token เก่าที่หมดอายุแล้ว
 });
 </script>
 </body>
