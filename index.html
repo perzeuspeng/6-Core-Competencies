@@ -911,13 +911,17 @@ function printReport(){
   const compRows=cs.map(({c,score})=>{
     const p2=pct(score,c.max);
     const lv2=getLevel(p2);
-    const filledPct=p2;
-    const emptyPct=100-p2;
-    // bar ใช้ table เพื่อให้พิมพ์สีได้
-    const barHtml=`<table style="width:100%;border-collapse:collapse;height:20px;"><tr>`
-      +(filledPct>0?`<td style="width:${filledPct}%;background:${c.color};height:20px;font-size:10px;color:white;text-align:right;padding-right:5px;vertical-align:middle;">${filledPct}%</td>`:'')
-      +(emptyPct>0?`<td style="width:${emptyPct}%;background:#ecf0f1;height:20px;"></td>`:'')
-      +`</tr></table>`;
+    // ใช้ SVG — พิมพ์สีได้ทุก browser โดยไม่ต้องพึ่ง background-color
+    const BAR_W=280, BAR_H=20;
+    const filledW=Math.round(BAR_W*p2/100);
+    const labelX=filledW>30?filledW-4:filledW+4;
+    const labelAnchor=filledW>30?'end':'start';
+    const labelFill=filledW>30?'white':c.color;
+    const barHtml=`<svg width="${BAR_W}" height="${BAR_H}" viewBox="0 0 ${BAR_W} ${BAR_H}" style="display:block;max-width:100%;">
+      <rect x="0" y="0" width="${BAR_W}" height="${BAR_H}" rx="3" fill="#ecf0f1"/>
+      ${filledW>0?`<rect x="0" y="0" width="${filledW}" height="${BAR_H}" rx="3" fill="${c.color}"/>`:''}
+      ${p2>0?`<text x="${labelX}" y="${BAR_H/2+1}" dominant-baseline="middle" text-anchor="${labelAnchor}" font-size="10" font-family="Sarabun,sans-serif" fill="${labelFill}" font-weight="700">${p2}%</text>`:''}
+    </svg>`;
     return `<tr style="border-bottom:1px solid #ddd;">
       <td style="padding:8px 10px;font-size:12px;width:28%;border-right:1px solid #ddd;">
         <div style="font-weight:700;color:#1a3a5c;">สมรรถนะ ${c.id}</div>
@@ -1056,6 +1060,8 @@ function printReport(){
     @media print{
       @page{size:A4 portrait;margin:15mm;}
       body{padding:0;}
+    }
+    *{
       -webkit-print-color-adjust:exact!important;
       print-color-adjust:exact!important;
       color-adjust:exact!important;
