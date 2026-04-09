@@ -209,7 +209,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
   <div class="login-logo" id="login-logo"><span>📋</span></div>
   <div style="font-size:20px;font-weight:700;color:white;text-align:center;margin-bottom:6px">ระบบประเมินสมรรถนะหลัก 6 ด้าน</div>
   <div style="font-size:13px;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:6px;line-height:1.6">กรุณาเข้าสู่ระบบด้วยบัญชี Google<br>เพื่อบันทึกข้อมูลใน Google Drive ของคุณ</div>
-  <div style="font-size:12px;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:36px">โรงเรียนบ้านยอดดอนชี · สพป.อุบลราชธานี เขต 3</div>
+  <div id="login-school-name" style="font-size:12px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:36px;line-height:1.5"></div>
   <button class="google-btn" onclick="signInWithGoogle()">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
     เข้าสู่ระบบด้วย Google
@@ -278,15 +278,23 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
               </div>
             </div>
           </div>
-          <div class="field-group"><div class="field-label">ชื่อโรงเรียน</div><input class="field-input" id="f-school" value="บ้านยอดดอนชี" oninput="scheduleSync()"></div>
-          <div class="field-group"><div class="field-label">สังกัด</div><input class="field-input" id="f-dept" value="สพป.อุบลราชธานี เขต 3" oninput="scheduleSync()"></div>
-          <div class="field-group"><div class="field-label">ผู้อำนวยการ</div><input class="field-input" id="f-director" value="นายสุริยเทพ ภาเรือง" oninput="scheduleSync()"></div>
+          <div class="field-group"><div class="field-label">ชื่อโรงเรียน</div><input class="field-input" id="f-school" placeholder="กรอกชื่อโรงเรียน" oninput="markUnsaved()"></div>
+          <div class="field-group"><div class="field-label">สังกัด</div><input class="field-input" id="f-dept" placeholder="กรอกสังกัด/หน่วยงาน" oninput="markUnsaved()"></div>
+          <div class="field-group"><div class="field-label">ผู้อำนวยการ</div><input class="field-input" id="f-director" placeholder="กรอกชื่อผู้อำนวยการ" oninput="markUnsaved()"></div>
           <div class="field-row">
-            <div class="field-group"><div class="field-label">ระดับชั้น</div><input class="field-input" id="f-grade" value="ประถมศึกษาปีที่ 2" oninput="scheduleSync()"></div>
-            <div class="field-group"><div class="field-label">ห้อง / ปีการศึกษา</div><input class="field-input" id="f-room" value="1 / 2568" oninput="scheduleSync()"></div>
+            <div class="field-group"><div class="field-label">ระดับชั้น</div><input class="field-input" id="f-grade" placeholder="เช่น ป.2" oninput="markUnsaved()"></div>
+            <div class="field-group"><div class="field-label">ห้อง / ปีการศึกษา</div><input class="field-input" id="f-room" placeholder="เช่น 1 / 2568" oninput="markUnsaved()"></div>
           </div>
-          <div class="field-group"><div class="field-label">ครูผู้ประเมิน</div><input class="field-input" id="f-teacher" value="นายปกรณ์ มั่นจิต" oninput="scheduleSync()"></div>
-          <div class="field-group"><div class="field-label">ตำแหน่ง</div><input class="field-input" id="f-teacher-pos" value="พนักงานราชการ" oninput="scheduleSync()"></div>
+          <div class="field-group"><div class="field-label">ครูผู้ประเมิน</div><input class="field-input" id="f-teacher" placeholder="กรอกชื่อครูผู้ประเมิน" oninput="markUnsaved()"></div>
+          <div class="field-group"><div class="field-label">ตำแหน่ง</div><input class="field-input" id="f-teacher-pos" placeholder="เช่น ครู คศ.1, พนักงานราชการ" oninput="markUnsaved()"></div>
+
+          <!-- CONFIRM SAVE BUTTON -->
+          <div id="unsaved-bar" style="display:none;margin-top:8px;padding:10px 14px;background:#fff8e1;border:1.5px solid #f0a500;border-radius:10px;display:none;align-items:center;gap:10px">
+            <div style="font-size:13px;color:#7d6608;flex:1">⚠️ มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก</div>
+          </div>
+          <button class="btn btn-success btn-full" style="margin-top:12px" onclick="confirmSaveSchoolData()">
+            ✅ ยืนยันและบันทึกข้อมูลโรงเรียน
+          </button>
         </div>
 
         <div class="card">
@@ -297,7 +305,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
         <div class="license-card">
           <div style="font-size:32px;margin-bottom:8px">📋</div>
           <div style="font-size:15px;font-weight:700;margin-bottom:4px">ระบบประเมินสมรรถนะหลัก 6 ด้าน</div>
-          <div style="font-size:12px;opacity:0.8;margin-bottom:12px;line-height:1.5">โรงเรียนบ้านยอดดอนชี<br>สพป.อุบลราชธานี เขต 3</div>
+          <div id="license-school-info" style="font-size:12px;opacity:0.8;margin-bottom:12px;line-height:1.5"></div>
           <div class="lc-owner">© Pakorn Manchit</div>
           <div class="lc-copy">สงวนลิขสิทธิ์ พ.ศ. 2568<br>ห้ามทำซ้ำ ดัดแปลง หรือเผยแพร่โดยไม่ได้รับอนุญาต<br><br>All rights reserved. Unauthorized reproduction or distribution is prohibited.</div>
         </div>
@@ -645,25 +653,17 @@ function buildSaveData(){return{students,schoolLogo,school:getSchoolData(),saved
 function resetAppData(){
   students=[];
   schoolLogo='';
-  // Reset form fields
-  const fields={
-    'f-school':'','f-dept':'','f-director':'',
-    'f-grade':'','f-room':'','f-teacher':'','f-teacher-pos':''
-  };
-  Object.entries(fields).forEach(([id,v])=>{
-    const el=document.getElementById(id);if(el)el.value=v;
-  });
+  const fields=['f-school','f-dept','f-director','f-grade','f-room','f-teacher','f-teacher-pos'];
+  fields.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  hasUnsavedSchool=false;
+  const bar=document.getElementById('unsaved-bar');if(bar)bar.style.display='none';
   // Reset logo UI
-  const img=document.getElementById('logo-preview-img');
-  if(img){img.style.display='none';img.src='';}
-  const ph=document.getElementById('logo-preview-placeholder');
-  if(ph)ph.style.display='block';
-  const rb=document.getElementById('logo-remove-btn');
-  if(rb)rb.style.display='none';
-  const ti=document.getElementById('topbar-logo-img');
-  if(ti){ti.style.display='none';ti.src='';}
-  const tic=document.getElementById('topbar-logo-icon');
-  if(tic)tic.style.display='block';
+  const img=document.getElementById('logo-preview-img');if(img){img.style.display='none';img.src='';}
+  const ph=document.getElementById('logo-preview-placeholder');if(ph)ph.style.display='block';
+  const rb=document.getElementById('logo-remove-btn');if(rb)rb.style.display='none';
+  const ti=document.getElementById('topbar-logo-img');if(ti){ti.style.display='none';ti.src='';}
+  const tic=document.getElementById('topbar-logo-icon');if(tic)tic.style.display='block';
+  updateDynamicSchoolName();
   renderStudentList();
 }
 
@@ -700,6 +700,10 @@ function applyLoadedData(d){
       document.getElementById('f-room').value=s.room||'';
       document.getElementById('f-teacher').value=s.teacher||'';
       document.getElementById('f-teacher-pos').value=s.teacherPos||'';
+      hasUnsavedSchool=false;
+      const bar=document.getElementById('unsaved-bar');
+      if(bar)bar.style.display='none';
+      updateDynamicSchoolName();
     },100);
   }
   renderStudentList();
@@ -740,6 +744,7 @@ function showApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   applyUserUI(); renderStudentList(); startAutoSync();
+  setTimeout(updateDynamicSchoolName, 200);
 }
 
 // ===== LOGO =====
@@ -879,7 +884,9 @@ function triggerPrint(){
 
 function printHTML(content){
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');*{box-sizing:border-box;}body{font-family:'Sarabun',sans-serif;padding:20px;color:#1a2433;font-size:13px;}table{width:100%;border-collapse:collapse;}th{background:#1a3a5c!important;color:white!important;padding:7px;}td{padding:6px;border-bottom:1px solid #ddd;}.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}.badge-above{background:#d5f5e3;color:#1e8449;}.badge-capable{background:#d6eaf8;color:#1a5276;}.badge-developing{background:#fef9e7;color:#7d6608;}.badge-beginning{background:#fadbd8;color:#922b21;}.badge-pass{background:#d5f5e3;color:#1e8449;}.badge-fail{background:#fadbd8;color:#922b21;}.report-wrap{padding:10px;}.report-top{text-align:center;margin-bottom:12px;}.report-top h2{font-size:15px;font-weight:700;}.report-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}.report-info-cell{background:#e8f4fd;padding:6px 8px;border-radius:6px;font-size:12px;}.report-info-cell.full{grid-column:1/-1;}.report-info-cell strong{display:block;font-size:10px;color:#666;}.comp-result-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}.comp-result-name{width:100px;font-size:11px;}.comp-result-bar{flex:1;}.comp-result-score{width:60px;text-align:right;font-size:11px;font-weight:700;}.bar-track{background:#ecf0f1;border-radius:4px;height:12px;overflow:hidden;}.bar-fill{height:100%;display:flex;align-items:center;padding-right:4px;font-size:9px;color:white;font-weight:700;}.report-total{background:#1a3a5c;color:white;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;margin:10px 0;}.card-title-dot{width:4px;height:14px;background:#f0a500;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle;}.print-footer{margin-top:28px;padding-top:10px;border-top:1px solid #ddd;text-align:center;font-size:10px;color:#999;}@media print{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}</style></head><body>${content}<div class="print-footer">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน</div></body></html>`);
+  const school=getSchoolData();
+  const schoolStr=school.name?` · โรงเรียน${school.name}`:'';
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');*{box-sizing:border-box;}body{font-family:'Sarabun',sans-serif;padding:20px;color:#1a2433;font-size:13px;}table{width:100%;border-collapse:collapse;}th{background:#1a3a5c!important;color:white!important;padding:7px;}td{padding:6px;border-bottom:1px solid #ddd;}.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}.badge-above{background:#d5f5e3;color:#1e8449;}.badge-capable{background:#d6eaf8;color:#1a5276;}.badge-developing{background:#fef9e7;color:#7d6608;}.badge-beginning{background:#fadbd8;color:#922b21;}.badge-pass{background:#d5f5e3;color:#1e8449;}.badge-fail{background:#fadbd8;color:#922b21;}.report-wrap{padding:10px;}.report-top{text-align:center;margin-bottom:12px;}.report-top h2{font-size:15px;font-weight:700;}.report-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}.report-info-cell{background:#e8f4fd;padding:6px 8px;border-radius:6px;font-size:12px;}.report-info-cell.full{grid-column:1/-1;}.report-info-cell strong{display:block;font-size:10px;color:#666;}.comp-result-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}.comp-result-name{width:100px;font-size:11px;}.comp-result-bar{flex:1;}.comp-result-score{width:60px;text-align:right;font-size:11px;font-weight:700;}.bar-track{background:#ecf0f1;border-radius:4px;height:12px;overflow:hidden;}.bar-fill{height:100%;display:flex;align-items:center;padding-right:4px;font-size:9px;color:white;font-weight:700;}.report-total{background:#1a3a5c;color:white;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;margin:10px 0;}.card-title-dot{width:4px;height:14px;background:#f0a500;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle;}.print-footer{margin-top:28px;padding-top:10px;border-top:1px solid #ddd;text-align:center;font-size:10px;color:#999;}@media print{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}</style></head><body>${content}<div class="print-footer">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน${schoolStr}</div></body></html>`);
   w.document.close();setTimeout(()=>w.print(),800);
 }
 
@@ -889,7 +896,50 @@ window.addEventListener('appinstalled',()=>{document.getElementById('install-ban
 function installApp(){if(deferredInstall){deferredInstall.prompt();deferredInstall.userChoice.then(r=>{if(r.outcome==='accepted')showToast('✅ ติดตั้งสำเร็จ!');deferredInstall=null;document.getElementById('install-banner-wrap').style.display='none';});}else showToast('แตะเมนู ⋮ → "เพิ่มไปยังหน้าจอหลัก"');}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
-// ===== DRIVE DIAGNOSTICS =====
+// ===== DYNAMIC SCHOOL NAME (update all places that show school name) =====
+function updateDynamicSchoolName(){
+  const school=getSchoolData();
+  const schoolLine=school.name?`โรงเรียน${school.name}`:'';
+  const deptLine=school.dept||'';
+  const combined=[schoolLine,deptLine].filter(Boolean).join('\n');
+
+  // Login screen subtitle
+  const lsn=document.getElementById('login-school-name');
+  if(lsn)lsn.textContent=combined;
+
+  // License card
+  const lsi=document.getElementById('license-school-info');
+  if(lsi)lsi.innerHTML=[schoolLine,deptLine].filter(Boolean).map(s=>`<div>${s}</div>`).join('');
+
+  // Topbar subtitle (only on data page to avoid confusion)
+  const sub=document.getElementById('topbar-subtitle');
+  if(sub&&currentPage==='data'&&school.name){
+    sub.textContent=`โรงเรียน${school.name}`;
+  }
+}
+
+// ===== UNSAVED INDICATOR + CONFIRM SAVE =====
+let hasUnsavedSchool=false;
+
+function markUnsaved(){
+  hasUnsavedSchool=true;
+  const bar=document.getElementById('unsaved-bar');
+  if(bar)bar.style.display='flex';
+  updateDynamicSchoolName();
+}
+
+function confirmSaveSchoolData(){
+  if(!document.getElementById('f-school').value.trim()){
+    showToast('⚠️ กรุณากรอกชื่อโรงเรียนก่อน');
+    return;
+  }
+  hasUnsavedSchool=false;
+  const bar=document.getElementById('unsaved-bar');
+  if(bar)bar.style.display='none';
+  updateDynamicSchoolName();
+  syncToDrive();
+  showToast('✅ บันทึกข้อมูลโรงเรียนแล้ว');
+}
 async function testDriveConnection(){
   closeModal('user-modal');
   showLoading('กำลังทดสอบการเชื่อมต่อ...');
