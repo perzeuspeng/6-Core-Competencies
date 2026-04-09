@@ -332,11 +332,6 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
         <div id="report-content"></div>
       </div>
 
-      <!-- PAGE: หน้าปก -->
-      <div id="page-cover" class="page">
-        <div id="cover-content"></div>
-      </div>
-
     </div>
   </div>
 
@@ -345,7 +340,6 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
     <div class="nav-item" id="nav-scores" onclick="gotoPage('scores',this)"><div class="nav-icon">✏️</div><div class="nav-label">คะแนน</div></div>
     <div class="nav-item" id="nav-summary" onclick="gotoPage('summary',this)"><div class="nav-icon">📊</div><div class="nav-label">สรุปผล</div></div>
     <div class="nav-item" id="nav-report" onclick="gotoPage('report',this)"><div class="nav-icon">📄</div><div class="nav-label">รายงาน</div></div>
-    <div class="nav-item" id="nav-cover" onclick="gotoPage('cover',this)"><div class="nav-icon">🗂️</div><div class="nav-label">หน้าปก</div></div>
   </nav>
   <div id="license-bar">© 2568 Copyright <strong style="color:#f0a500">Pakorn Manchit</strong> · สงวนลิขสิทธิ์ทุกประการ</div>
 </div>
@@ -786,7 +780,7 @@ const getCS=(s,id)=>(s.scores['c'+id]||[0,0,0,0,0]).reduce((a,b)=>a+b,0);
 const getTS=s=>COMP.reduce((sum,c)=>sum+getCS(s,c.id),0);
 
 // ===== NAVIGATION =====
-const PAGE_TITLES={data:'ข้อมูลพื้นฐาน',scores:'บันทึกคะแนน',summary:'สรุปผลการประเมิน',report:'รายงานรายบุคคล',cover:'หน้าปกรายงาน'};
+const PAGE_TITLES={data:'ข้อมูลพื้นฐาน',scores:'บันทึกคะแนน',summary:'สรุปผลการประเมิน',report:'รายงานรายบุคคล'};
 function gotoPage(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -798,7 +792,6 @@ function gotoPage(name,el){
   if(name==='scores'){renderCompChips();renderScoreList();}
   if(name==='summary')renderSummary();
   if(name==='report'){renderReportSelect();renderReport();}
-  if(name==='cover')renderCover();
 }
 
 // ===== STUDENTS =====
@@ -854,150 +847,6 @@ function renderSummary(){
     const mbs=COMP.map((c,i)=>`<div class="mini-bar-wrap"><div class="mini-bar-val">${cps[i]}%</div><div class="mini-bar-track"><div class="mini-bar-fill" style="height:${cps[i]}%;background:${c.color}"></div></div><div class="mini-bar-label">${c.id}</div></div>`).join('');
     return `<div class="summary-student"><div style="margin-bottom:8px"><div style="font-size:14px;font-weight:700">${s.no}. ${s.name}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">รวม ${total}/${TOTAL_MAX} (${p}%) ${badge(lv)}</div></div><div class="summary-mini-bars">${mbs}</div></div>`;
   }).join('');
-}
-
-
-// ===== COVER PAGE =====
-function buildCoverHTML(forPrint){
-  var school=getSchoolData();
-  var logoHtml=schoolLogo
-    ?'<img src="'+schoolLogo+'" style="width:'+(forPrint?'88px':'76px')+';height:'+(forPrint?'88px':'76px')+';object-fit:cover;border-radius:50%;border:3px solid #e8f4fd;">'
-    :'<div style="font-size:'+(forPrint?'54px':'44px')+';line-height:1;">🏫</div>';
-
-  var avgScores=COMP.map(function(c){
-    if(!students.length) return 0;
-    var sum=students.reduce(function(acc,s){return acc+getCS(s,c.id);},0);
-    return Math.round(sum/students.length*10)/10;
-  });
-
-  // SVG กราฟแท่งแนวตั้ง
-  var BW=forPrint?50:40, BGAP=forPrint?16:12;
-  var PL=10, PR=10, PT=forPrint?26:20, PLOTBOT=forPrint?52:44;
-  var SVGW=COMP.length*(BW+BGAP)-BGAP+PL+PR;
-  var SVGH=forPrint?230:190;
-  var PLOTH=SVGH-PT-PLOTBOT;
-
-  var gridLines=[0,25,50,75,100].map(function(v){
-    var y=PT+PLOTH*(1-v/100);
-    return '<line x1="'+PL+'" y1="'+y+'" x2="'+(SVGW-PR)+'" y2="'+y+'" stroke="#e0e0e0" stroke-width="1"/>'
-          +'<text x="'+(PL-2)+'" y="'+(y+1)+'" text-anchor="end" dominant-baseline="middle" font-size="8" fill="#aaa">'+v+'%</text>';
-  }).join('');
-
-  var bars=COMP.map(function(c,i){
-    var p2=pct(avgScores[i],c.max);
-    var bH=Math.round(PLOTH*p2/100);
-    var x=PL+i*(BW+BGAP);
-    var y=PT+PLOTH-bH;
-    var shortA=c.short.length>4?c.short.substring(0,4):c.short;
-    var shortB=c.short.length>4?c.short.substring(4):'';
-    return '<rect x="'+x+'" y="'+PT+'" width="'+BW+'" height="'+PLOTH+'" rx="3" fill="#f0f4f8"/>'
-          +(bH>0?'<rect x="'+x+'" y="'+y+'" width="'+BW+'" height="'+bH+'" rx="3" fill="'+c.color+'"/>':'')
-          +(p2>0?'<text x="'+(x+BW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+c.color+'" font-family="Sarabun,sans-serif">'+p2+'%</text>':'')
-          +'<text x="'+(x+BW/2)+'" y="'+(PT+PLOTH+13)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#1a3a5c" font-family="Sarabun,sans-serif">ส'+c.id+'</text>'
-          +'<text x="'+(x+BW/2)+'" y="'+(PT+PLOTH+24)+'" text-anchor="middle" font-size="8" fill="#555" font-family="Sarabun,sans-serif">'+shortA+'</text>'
-          +(shortB?'<text x="'+(x+BW/2)+'" y="'+(PT+PLOTH+34)+'" text-anchor="middle" font-size="8" fill="#555" font-family="Sarabun,sans-serif">'+shortB+'</text>':'');
-  }).join('');
-
-  var svgChart='<svg width="'+SVGW+'" height="'+SVGH+'" viewBox="0 0 '+SVGW+' '+SVGH+'" style="display:block;max-width:100%;">'+gridLines+bars+'</svg>';
-
-  var roomParts=(school.room||'').split('/');
-  var roomNum=(roomParts[0]||'').trim();
-  var yearNum=(roomParts[1]||'').trim()||'2568';
-  var gradeStr=school.grade?(school.grade+(roomNum?' ห้อง '+roomNum:'')):(school.room||'');
-
-  var totalStudents=students.length;
-  var passCount=students.filter(function(s){
-    var total=COMP.reduce(function(sum,c){return sum+getCS(s,c.id);},0);
-    return pct(total,TOTAL_MAX)>=60;
-  }).length;
-  var classAvgRaw=totalStudents>0?students.reduce(function(sum,s){return sum+COMP.reduce(function(a,c){return a+getCS(s,c.id);},0);},0)/totalStudents:0;
-  var classAvg=pct(Math.round(classAvgRaw),TOTAL_MAX);
-
-  var f=forPrint;
-  var fp=function(a,b){return f?a:b;};
-
-  return '<div style="font-family:Sarabun,sans-serif;max-width:'+(f?'680px':'100%')+';margin:0 auto;color:#1a2433;">'
-
-    // หัวปก gradient
-    +'<div style="text-align:center;padding:'+(f?'28px 24px 22px':'20px 16px 18px')+';background:linear-gradient(160deg,#0d2137 0%,#1a3a5c 55%,#2d6a9f 100%);color:white;'+(f?'':'border-radius:14px;')+'margin-bottom:14px;">'
-    +'<div style="margin-bottom:'+(f?'12px':'8px')+';">'+logoHtml+'</div>'
-    +'<div style="font-size:'+(f?'11px':'10px')+';opacity:0.6;letter-spacing:1.5px;margin-bottom:6px;">COMPETENCY ASSESSMENT REPORT</div>'
-    +'<div style="font-size:'+(f?'21px':'17px')+';font-weight:800;line-height:1.35;margin-bottom:10px;">รายงานผลการประเมิน<br>สมรรถนะหลัก 6 ด้าน</div>'
-    +(school.name?'<div style="font-size:'+(f?'16px':'14px')+';font-weight:700;margin-bottom:4px;opacity:0.95;">โรงเรียน'+school.name+'</div>':'')
-    +(school.dept?'<div style="font-size:'+(f?'13px':'11px')+';opacity:0.72;margin-bottom:8px;">'+school.dept+'</div>':'')
-    +'<div style="display:inline-block;background:rgba(240,165,0,0.22);border:1px solid rgba(240,165,0,0.55);border-radius:20px;padding:4px 18px;font-size:'+(f?'13px':'11px')+';color:#f0a500;font-weight:700;">'
-    +(gradeStr?'ชั้น '+gradeStr+' &nbsp;·&nbsp; ':'')+'ปีการศึกษา '+yearNum
-    +'</div>'
-    +'</div>'
-
-    // สถิติ 3 ช่อง
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:'+(f?'10px':'8px')+';margin-bottom:14px;">'
-    +'<div style="background:white;border-radius:10px;padding:'+(f?'14px 8px':'10px 6px')+';text-align:center;border:1px solid #dde3ea;box-shadow:0 1px 4px rgba(0,0,0,0.05);">'
-    +'<div style="font-size:'+(f?'28px':'22px')+';font-weight:800;color:#1a3a5c;">'+totalStudents+'</div>'
-    +'<div style="font-size:'+(f?'11px':'10px')+';color:#5a6a7a;margin-top:2px;">นักเรียนทั้งหมด</div></div>'
-    +'<div style="background:white;border-radius:10px;padding:'+(f?'14px 8px':'10px 6px')+';text-align:center;border:1px solid #dde3ea;box-shadow:0 1px 4px rgba(0,0,0,0.05);">'
-    +'<div style="font-size:'+(f?'28px':'22px')+';font-weight:800;color:#27ae60;">'+passCount+'</div>'
-    +'<div style="font-size:'+(f?'11px':'10px')+';color:#5a6a7a;margin-top:2px;">ผ่านเกณฑ์ (≥60%)</div></div>'
-    +'<div style="background:white;border-radius:10px;padding:'+(f?'14px 8px':'10px 6px')+';text-align:center;border:1px solid #dde3ea;box-shadow:0 1px 4px rgba(0,0,0,0.05);">'
-    +'<div style="font-size:'+(f?'28px':'22px')+';font-weight:800;color:#2d6a9f;">'+classAvg+'%</div>'
-    +'<div style="font-size:'+(f?'11px':'10px')+';color:#5a6a7a;margin-top:2px;">ค่าเฉลี่ยรวม</div></div>'
-    +'</div>'
-
-    // กราฟแท่งแนวตั้ง
-    +'<div style="background:white;border-radius:10px;border:1px solid #dde3ea;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);">'
-    +'<div style="background:#1a3a5c;color:white;padding:'+(f?'9px 14px':'8px 12px')+';font-size:'+(f?'13px':'12px')+';font-weight:700;">📊 กราฟค่าเฉลี่ยแต่ละสมรรถนะ (ทั้งห้องเรียน)</div>'
-    +'<div style="padding:'+(f?'16px 14px 10px':'12px 10px 8px')+';overflow-x:auto;">'+svgChart+'</div>'
-    +'<div style="padding:0 '+(f?'14px':'10px')+' '+(f?'10px':'8px')+';display:flex;flex-wrap:wrap;gap:6px;">'
-    +COMP.map(function(c){return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:'+(f?'10px':'9px')+';color:#444;"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+c.color+';flex-shrink:0;"></span>ส'+c.id+' '+c.name+'</span>';}).join('')
-    +'</div></div>'
-
-    // ลายเซ็น 2 ช่อง
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:'+(f?'24px':'16px')+';margin-top:'+(f?'24px':'16px')+';">'
-    +'<div style="text-align:center;font-size:'+(f?'13px':'12px')+';color:#333;line-height:'+(f?'2.2':'1.9')+';">'
-    +'<div>ลงชื่อ .............................................</div>'
-    +'<div>ครูผู้ประเมิน/ผู้จัดทำ</div>'
-    +'<div>('+( school.teacher||'...................................'  )+')</div>'
-    +'<div style="font-size:'+(f?'12px':'11px')+';color:#666;">ตำแหน่ง '+(school.teacherPos||'พนักงานราชการ')+'</div>'
-    +'</div>'
-    +'<div style="text-align:center;font-size:'+(f?'13px':'12px')+';color:#333;line-height:'+(f?'2.2':'1.9')+';">'
-    +'<div>ลงชื่อ .............................................</div>'
-    +'<div>ผู้อนุมัติ/ผู้อำนวยการโรงเรียน</div>'
-    +'<div>('+( school.director||'...................................'  )+')</div>'
-    +'<div style="font-size:'+(f?'12px':'11px')+';color:#666;">ผู้อำนวยการโรงเรียน'+(school.name||'')+'</div>'
-    +'</div>'
-    +'</div>'
-
-    +'</div>';
-}
-
-function renderCover(){
-  document.getElementById('cover-content').innerHTML=
-    '<div style="padding-bottom:8px;">'
-    +buildCoverHTML(false)
-    +'<div style="text-align:center;margin-top:14px;">'
-    +'<button class="btn btn-primary" onclick="printCover()" style="min-width:180px;">🖨️ พิมพ์หน้าปก</button>'
-    +'</div></div>';
-}
-
-function printCover(){
-  var school=getSchoolData();
-  var schoolStr=school.name?' · โรงเรียน'+school.name:'';
-  var content=buildCoverHTML(true);
-  var w=window.open('','_blank');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    +'<style>'
-    +'@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap');'
-    +'*{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}'
-    +'body{font-family:Sarabun,sans-serif;padding:15mm 18mm;color:#1a2433;font-size:13px;margin:0;}'
-    +'svg text{font-family:Sarabun,sans-serif;}'
-    +'.print-footer{margin-top:20px;padding-top:8px;border-top:1px solid #ddd;text-align:center;font-size:10px;color:#999;}'
-    +'@media print{@page{size:A4 portrait;margin:15mm;}body{padding:0;}}'
-    +'</style></head><body>'
-    +content
-    +'<div class="print-footer">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน'+schoolStr+'</div>'
-    +'</body></html>');
-  w.document.close();
-  setTimeout(function(){w.print();},600);
 }
 
 // ===== REPORT =====
@@ -1142,9 +991,6 @@ function triggerPrint(){
         <tbody>${rows}</tbody>
       </table>
       ${sig}`);
-  } else if(currentPage==='cover'){
-    printCover();
-    return;
   } else {
     // หน้ารายงาน — สร้าง print content จากข้อมูลโดยตรง ไม่ดึง innerHTML
     printReport();
