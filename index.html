@@ -353,10 +353,15 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
         <div id="student-summary-list"></div>
       </div>
 
-      <!-- PAGE: รายงาน -->
+      <!-- PAGE: รายงานรายบุคคล -->
       <div id="page-report" class="page">
         <div class="card"><div class="field-label" style="margin-bottom:8px">เลือกนักเรียน</div><select class="native-select" id="report-select" onchange="renderReport()"></select></div>
         <div id="report-content"></div>
+      </div>
+
+      <!-- PAGE: รายงานรวม -->
+      <div id="page-groupreport" class="page">
+        <div id="groupreport-content"></div>
       </div>
 
     </div>
@@ -367,7 +372,8 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
     <div class="nav-item" id="nav-scores" onclick="gotoPage('scores',this)"><div class="nav-icon">✏️</div><div class="nav-label">คะแนน</div></div>
     <div class="nav-item" id="nav-cover" onclick="gotoPage('cover',this)"><div class="nav-icon">📋</div><div class="nav-label">หน้าปก</div></div>
     <div class="nav-item" id="nav-summary" onclick="gotoPage('summary',this)"><div class="nav-icon">📊</div><div class="nav-label">สรุปผล</div></div>
-    <div class="nav-item" id="nav-report" onclick="gotoPage('report',this)"><div class="nav-icon">📄</div><div class="nav-label">รายงาน</div></div>
+    <div class="nav-item" id="nav-report" onclick="gotoPage('report',this)"><div class="nav-icon">📄</div><div class="nav-label" style="font-size:9px">รายบุคคล</div></div>
+    <div class="nav-item" id="nav-groupreport" onclick="gotoPage('groupreport',this)"><div class="nav-icon">📈</div><div class="nav-label" style="font-size:9px">รายงานรวม</div></div>
   </nav>
   <div id="license-bar">© 2568 Copyright <strong style="color:#f0a500">Pakorn Manchit</strong> · สงวนลิขสิทธิ์ทุกประการ</div>
 </div>
@@ -808,19 +814,20 @@ const getCS=(s,id)=>(s.scores['c'+id]||[0,0,0,0,0]).reduce((a,b)=>a+b,0);
 const getTS=s=>COMP.reduce((sum,c)=>sum+getCS(s,c.id),0);
 
 // ===== NAVIGATION =====
-const PAGE_TITLES={data:'ข้อมูลพื้นฐาน',scores:'บันทึกคะแนน',summary:'สรุปผลการประเมิน',report:'รายงานรายบุคคล'};
+const PAGE_TITLES={data:'ข้อมูลพื้นฐาน',scores:'บันทึกคะแนน',summary:'สรุปผลการประเมิน',report:'รายงานรายบุคคล',groupreport:'รายงานรวมสมรรถนะ'};
 function gotoPage(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
-  document.getElementById('topbar-title-text').textContent=PAGE_TITLES[name];
+  document.getElementById('topbar-title-text').textContent=PAGE_TITLES[name]||name;
   document.getElementById('scroll-area').scrollTop=0;
   currentPage=name;
   if(name==='scores'){renderCompChips();renderScoreList();}
   if(name==='summary')renderSummary();
   if(name==='cover')renderCover();
   if(name==='report'){renderReportSelect();renderReport();}
+  if(name==='groupreport')renderGroupReport();
 }
 
 // ===== STUDENTS =====
@@ -878,7 +885,7 @@ function buildCoverChartSVG(forPrint){
     if(!students.length)return 0;
     return Math.round(students.reduce((sum,s)=>sum+getCS(s,c.id),0)/students.length*10)/10;
   });
-  const W=forPrint?500:320, H=forPrint?220:180;
+  const W=forPrint?500:320, H=forPrint?190:155;
   const PAD_L=10,PAD_R=10,PAD_T=forPrint?30:24,PAD_B=forPrint?50:44;
   const n=COMP.length;
   const barW=Math.floor((W-PAD_L-PAD_R)/n*0.55);
@@ -1182,6 +1189,68 @@ function renderReport(){
   const cRows=cs.map(({c,score})=>{const p2=pct(score,c.max),lv2=getLevel(p2);return `<div class="comp-result-row"><div class="comp-result-name">ที่ ${c.id}: ${c.short}<br><span style="color:var(--text2);font-size:10px">(${c.max})</span></div><div class="comp-result-bar"><div class="bar-track" style="height:14px"><div class="bar-fill" style="width:${p2}%;background:${c.color};font-size:9px">${p2}%</div></div></div><div class="comp-result-score">${score}/${c.max}<br>${badge(lv2)}</div></div>`;}).join('');
   const iRows=COMP.map(c=>{const arr=s.scores['c'+c.id]||[0,0,0,0,0];return `<tr style="font-size:12px"><td style="padding:6px;text-align:left">${c.short}</td>${arr.map(v=>`<td style="padding:6px;text-align:center">${v}</td>`).join('')}<td style="padding:6px;text-align:center;font-weight:700">${arr.reduce((a,b)=>a+b,0)}</td></tr>`;}).join('');
   document.getElementById('report-content').innerHTML=`<div class="report-wrap"><div class="report-top">${schoolLogo?`<img src="${schoolLogo}" alt="ตรา" style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:3px solid var(--light);margin-bottom:10px">`:`<div style="font-size:40px;margin-bottom:8px">🏫</div>`}<h2>รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน</h2><p>โรงเรียน${school.name||'บ้านยอดดอนชี'}</p><p>${school.dept||'สพป.อุบลราชธานี เขต 3'}</p></div><div class="report-info-grid"><div class="report-info-cell"><strong>เลขที่</strong>${s.no}</div><div class="report-info-cell"><strong>เลขประจำตัว</strong>${s.id}</div><div class="report-info-cell full"><strong>ชื่อ - สกุล</strong>${s.name}</div><div class="report-info-cell"><strong>ระดับชั้น</strong>${school.grade}/${school.room}</div><div class="report-info-cell"><strong>ปีการศึกษา</strong>2568</div></div>${cRows}<div class="report-total"><div style="font-size:13px;font-weight:600">คะแนนรวมทั้งหมด</div><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px;font-weight:800">${total}/${TOTAL_MAX}</div><div><div style="font-size:16px;font-weight:700">${p}%</div>${badge(lv)}</div>${badge(overall)}</div></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--primary);color:white"><th style="padding:8px;text-align:left">สมรรถนะ</th><th style="padding:8px">ข้อ1</th><th style="padding:8px">ข้อ2</th><th style="padding:8px">ข้อ3</th><th style="padding:8px">ข้อ4</th><th style="padding:8px">ข้อ5</th><th style="padding:8px">รวม</th></tr></thead><tbody>${iRows}</tbody></table></div><div style="text-align:center;margin-top:24px;font-size:13px;color:var(--text2)"><div>ลงชื่อ .............................................</div><div style="margin-top:4px">ผู้ประเมิน</div><div>(${school.teacher})</div><div>ตำแหน่ง ${school.teacherPos}</div></div></div>`;
+}
+
+
+// ===== GROUP REPORT =====
+function renderGroupReport(){
+  const lvLabels=['เริ่มต้น','กำลังพัฒนา','สามารถ','เหนือความคาดหวัง'];
+  const lvKeys=['beginning','developing','capable','above'];
+  const lvColors=['#e74c3c','#f39c12','#3498db','#2ecc71'];
+  const lvBgs=['#fadbd8','#fef9e7','#d6eaf8','#d5f5e3'];
+
+  let html='';
+  COMP.forEach(c=>{
+    // นับจำนวนนักเรียนในแต่ละระดับของสมรรถนะนี้
+    const counts={beginning:0,developing:0,capable:0,above:0};
+    students.forEach(s=>{
+      const score=getCS(s,c.id);
+      const lv=getLevel(pct(score,c.max));
+      counts[lv.cls]++;
+    });
+    const maxCount=Math.max(...lvKeys.map(k=>counts[k]),1);
+
+    // สร้าง SVG กราฟแท่งแนวตั้ง
+    const W=320,H=160,PAD_L=8,PAD_R=8,PAD_T=28,PAD_B=48;
+    const chartH=H-PAD_T-PAD_B;
+    const n=4;
+    const barW=Math.floor((W-PAD_L-PAD_R)/n*0.55);
+    const gap=(W-PAD_L-PAD_R-barW*n)/(n+1);
+    let bars='',labels='';
+    lvKeys.forEach((k,i)=>{
+      const cnt=counts[k];
+      const bH=maxCount>0?Math.round(chartH*cnt/maxCount):0;
+      const x=PAD_L+gap*(i+1)+barW*i;
+      const y=PAD_T+chartH-bH;
+      bars+=`<rect x="${x}" y="${PAD_T}" width="${barW}" height="${chartH}" rx="3" fill="#ecf0f1"/>`;
+      if(bH>0) bars+=`<rect x="${x}" y="${y}" width="${barW}" height="${bH}" rx="3" fill="${lvColors[i]}"/>`;
+      bars+=`<text x="${x+barW/2}" y="${y-5}" text-anchor="middle" font-size="11" font-weight="700" fill="${lvColors[i]}" font-family="Sarabun,sans-serif">${cnt}</text>`;
+      const lab=lvLabels[i];
+      const line1=lab.length>5?lab.substring(0,5):lab;
+      const line2=lab.length>5?lab.substring(5):'';
+      bars+=`<text x="${x+barW/2}" y="${H-PAD_B+14}" text-anchor="middle" font-size="9" fill="#333" font-family="Sarabun,sans-serif">${line1}</text>`;
+      if(line2) bars+=`<text x="${x+barW/2}" y="${H-PAD_B+25}" text-anchor="middle" font-size="9" fill="#333" font-family="Sarabun,sans-serif">${line2}</text>`;
+    });
+    // กริด
+    let grid='';
+    [Math.ceil(maxCount/2),maxCount].filter(v=>v>0).forEach(v=>{
+      const gy=PAD_T+chartH*(1-v/maxCount);
+      grid+=`<line x1="${PAD_L}" y1="${gy}" x2="${W-PAD_R}" y2="${gy}" stroke="#ddd" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+      grid+=`<text x="${PAD_L-2}" y="${gy}" text-anchor="end" dominant-baseline="middle" font-size="7" fill="#aaa" font-family="Sarabun,sans-serif">${v}</text>`;
+    });
+    const svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;">${grid}${bars}</svg>`;
+
+    // แถบสรุปจำนวนคน
+    const chips=lvKeys.map((k,i)=>`<div style="display:flex;align-items:center;gap:4px;font-size:11px;background:${lvBgs[i]};color:${lvColors[i]};padding:3px 8px;border-radius:12px;font-weight:700;">${lvLabels[i]}: ${counts[k]} คน</div>`).join('');
+
+    html+=`<div class="card" style="margin-bottom:14px;border-left:4px solid ${c.color};">
+      <div style="font-size:13px;font-weight:700;color:${c.color};margin-bottom:8px;">สมรรถนะที่ ${c.id}: ${c.name}</div>
+      ${svg}
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;">${chips}</div>
+    </div>`;
+  });
+
+  document.getElementById('groupreport-content').innerHTML=html;
 }
 
 // ===== PRINT =====
