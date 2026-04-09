@@ -1028,7 +1028,7 @@ function printCoverPage(){
     </table>`;
 
   const logoHtml=schoolLogo
-    ?`<img src="${schoolLogo}" style="width:90px;height:90px;object-fit:cover;border-radius:50%;border:4px solid rgba(255,255,255,0.4);">`
+    ?`<img src="${schoolLogo}" style="width:64px;height:64px;object-fit:cover;border-radius:50%;border:3px solid rgba(255,255,255,0.4);">`
     :`<div style="font-size:48px;line-height:1">🏫</div>`;
 
   const legendHtml=COMP.map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;margin-right:10px;margin-bottom:4px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c.color};"></span>ส${c.id}: ${c.short}</span>`).join('');
@@ -1045,31 +1045,31 @@ function printCoverPage(){
       *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
       body{width:100%;padding:0;margin:0;}
     }
-    .cover-header{background:linear-gradient(135deg,#1a3a5c 0%,#2d6a9f 100%);padding:32px 24px 26px;text-align:center;color:white;}
-    .cover-body{padding:20px 24px 16px;}
-    .info-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px;}
-    .info-table td{padding:7px 10px;background:#e8f4fd;border:3px solid white;border-radius:6px;}
-    .info-label{font-size:9px;color:#5a6a7a;display:block;margin-bottom:2px;font-weight:600;}
-    .info-val{font-size:13px;font-weight:700;color:#1a2433;}
-    .chart-section{margin-bottom:18px;}
-    .chart-title{font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:8px;border-left:4px solid #f0a500;padding-left:8px;}
-    .sign-section{display:table;width:100%;margin-top:20px;}
-    .sign-box{display:table-cell;width:50%;padding:14px 12px;text-align:center;background:#f5f7fa;border-radius:10px;}
+    .cover-header{background:linear-gradient(135deg,#1a3a5c 0%,#2d6a9f 100%);padding:16px 20px 14px;text-align:center;color:white;}
+    .cover-body{padding:12px 20px 10px;}
+    .info-table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:11px;}
+    .info-table td{padding:5px 8px;background:#e8f4fd;border:3px solid white;border-radius:6px;}
+    .info-label{font-size:8px;color:#5a6a7a;display:block;margin-bottom:1px;font-weight:600;}
+    .info-val{font-size:12px;font-weight:700;color:#1a2433;}
+    .chart-section{margin-bottom:10px;}
+    .chart-title{font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:6px;border-left:4px solid #f0a500;padding-left:8px;}
+    .sign-section{display:table;width:100%;margin-top:10px;}
+    .sign-box{display:table-cell;width:50%;padding:8px 10px;text-align:center;background:#f5f7fa;border-radius:10px;}
     .sign-box:first-child{margin-right:6px;}
-    .sign-role{font-size:11px;font-weight:700;color:#5a6a7a;margin-bottom:14px;}
-    .sign-line{border-bottom:1.5px dashed #bbb;margin:0 8px 6px;}
-    .sign-name{font-size:12px;font-weight:700;}
-    .sign-pos{font-size:11px;color:#666;margin-top:2px;}
-    .sign-date{font-size:10px;color:#888;margin-top:4px;}
-    .print-footer{margin-top:20px;padding-top:8px;border-top:1px solid #ddd;text-align:center;font-size:9px;color:#999;}
-    .stat-cell{padding:8px;text-align:center;border-radius:6px;border:2px solid white;}
+    .sign-role{font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:10px;}
+    .sign-line{border-bottom:1.5px dashed #bbb;margin:0 8px 5px;}
+    .sign-name{font-size:11px;font-weight:700;}
+    .sign-pos{font-size:10px;color:#666;margin-top:2px;}
+    .sign-date{font-size:9px;color:#888;margin-top:3px;}
+    .print-footer{margin-top:10px;padding-top:6px;border-top:1px solid #ddd;text-align:center;font-size:9px;color:#999;}
+    .stat-cell{padding:5px;text-align:center;border-radius:6px;border:2px solid white;}
   </style>
   </head><body>
 
   <div class="cover-header">
-    <div style="margin-bottom:14px">${logoHtml}</div>
-    <div style="font-size:18px;font-weight:800;margin-bottom:6px;line-height:1.3;">แบบประเมินผู้เรียนตามสมรรถนะหลัก 6 ด้าน</div>
-    <div style="font-size:13px;opacity:0.9;line-height:1.7;">
+    <div style="margin-bottom:8px">${logoHtml}</div>
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px;line-height:1.3;">แบบประเมินผู้เรียนตามสมรรถนะหลัก 6 ด้าน</div>
+    <div style="font-size:11px;opacity:0.9;line-height:1.5;">
       ${school.name?`โรงเรียน${school.name}<br>`:''}
       ${school.dept?`${school.dept}<br>`:''}
       ${school.grade?`ระดับชั้น${school.grade}` :''}${school.room?` ห้อง ${school.room}`:''}
@@ -1112,19 +1112,19 @@ function printCoverPage(){
       <table style="width:100%;border-collapse:separate;border-spacing:6px;">
         <tr>
           <td class="stat-cell" style="background:#d5f5e3;">
-            <div style="font-size:22px;font-weight:800;color:#1e8449;">${cts.above}</div>
+            <div style="font-size:18px;font-weight:800;color:#1e8449;">${cts.above}</div>
             <div style="font-size:10px;color:#1e8449;font-weight:700;">เหนือความคาดหวัง</div>
           </td>
           <td class="stat-cell" style="background:#d6eaf8;">
-            <div style="font-size:22px;font-weight:800;color:#1a5276;">${cts.capable}</div>
+            <div style="font-size:18px;font-weight:800;color:#1a5276;">${cts.capable}</div>
             <div style="font-size:10px;color:#1a5276;font-weight:700;">สามารถ</div>
           </td>
           <td class="stat-cell" style="background:#fef9e7;">
-            <div style="font-size:22px;font-weight:800;color:#7d6608;">${cts.developing}</div>
+            <div style="font-size:18px;font-weight:800;color:#7d6608;">${cts.developing}</div>
             <div style="font-size:10px;color:#7d6608;font-weight:700;">กำลังพัฒนา</div>
           </td>
           <td class="stat-cell" style="background:#fadbd8;">
-            <div style="font-size:22px;font-weight:800;color:#922b21;">${cts.beginning}</div>
+            <div style="font-size:18px;font-weight:800;color:#922b21;">${cts.beginning}</div>
             <div style="font-size:10px;color:#922b21;font-weight:700;">เริ่มต้น</div>
           </td>
         </tr>
@@ -1137,17 +1137,17 @@ function printCoverPage(){
       <div style="margin-top:8px;line-height:1.8">${legendHtml}</div>
     </div>
 
-    <table style="width:100%;border-collapse:separate;border-spacing:8px;margin-top:16px;">
+    <table style="width:100%;border-collapse:separate;border-spacing:6px;margin-top:8px;">
       <tr>
-        <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:16px 12px;text-align:center;vertical-align:top;">
-          <div style="font-size:11px;font-weight:700;color:#5a6a7a;margin-bottom:28px;">ลงชื่อผู้ประเมิน</div>
+        <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 10px;text-align:center;vertical-align:top;">
+          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:16px;">ลงชื่อผู้ประเมิน</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
           <div style="font-size:12px;font-weight:700;">(${school.teacher||'...................................'})</div>
           <div style="font-size:11px;color:#666;margin-top:3px;">${school.teacherPos||'ผู้ประเมิน'}</div>
           <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ ${thaiDate}</div>
         </td>
-        <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:16px 12px;text-align:center;vertical-align:top;">
-          <div style="font-size:11px;font-weight:700;color:#5a6a7a;margin-bottom:28px;">ลงชื่อผู้อนุมัติ</div>
+        <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 10px;text-align:center;vertical-align:top;">
+          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:16px;">ลงชื่อผู้อนุมัติ</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
           <div style="font-size:12px;font-weight:700;">(${school.director||'...................................'})</div>
           <div style="font-size:11px;color:#666;margin-top:3px;">ผู้อำนวยการโรงเรียน${school.name?school.name:''}</div>
@@ -1155,6 +1155,116 @@ function printCoverPage(){
         </td>
       </tr>
     </table>
+  </div>
+
+  <div class="print-footer">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน${schoolStr}</div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),700);
+}
+
+
+function printGroupReport(){
+  const school=getSchoolData();
+  const today=new Date();
+  const thaiDate=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const schoolStr=school.name?` · โรงเรียน${school.name}`:'';
+
+  const lvLabels=['เริ่มต้น','กำลังพัฒนา','สามารถ','เหนือความคาดหวัง'];
+  const lvKeys=['beginning','developing','capable','above'];
+  const lvColors=['#e74c3c','#f39c12','#3498db','#2ecc71'];
+  const lvBgs=['#fadbd8','#fef9e7','#d6eaf8','#d5f5e3'];
+
+  // สร้างกราฟแต่ละสมรรถนะ (3 กราฟ ต่อแถว 2 กราฟ → 3 แถว)
+  const W=230, H=150, PAD_L=8, PAD_R=8, PAD_T=24, PAD_B=46;
+  const chartH=H-PAD_T-PAD_B;
+  const n=4;
+  const barW=Math.floor((W-PAD_L-PAD_R)/n*0.55);
+  const gap=(W-PAD_L-PAD_R-barW*n)/(n+1);
+
+  const chartCells = COMP.map(c=>{
+    const counts={beginning:0,developing:0,capable:0,above:0};
+    students.forEach(s=>{
+      const lv=getLevel(pct(getCS(s,c.id),c.max));
+      counts[lv.cls]++;
+    });
+    const maxCount=Math.max(...lvKeys.map(k=>counts[k]),1);
+    let bars='',grid='';
+    lvKeys.forEach((k,i)=>{
+      const cnt=counts[k];
+      const bH=Math.round(chartH*cnt/maxCount);
+      const x=PAD_L+gap*(i+1)+barW*i;
+      const y=PAD_T+chartH-bH;
+      bars+=`<rect x="${x}" y="${PAD_T}" width="${barW}" height="${chartH}" rx="2" fill="#ecf0f1"/>`;
+      if(bH>0) bars+=`<rect x="${x}" y="${y}" width="${barW}" height="${bH}" rx="2" fill="${lvColors[i]}"/>`;
+      // ตัวเลขเหนือแท่ง
+      bars+=`<text x="${x+barW/2}" y="${y-4}" text-anchor="middle" font-size="9" font-weight="700" fill="${lvColors[i]}" font-family="Sarabun,sans-serif">${cnt}</text>`;
+      // label ชื่อระดับ 2 บรรทัด
+      const lab=lvLabels[i];
+      const mid=lab.length>5?5:lab.length;
+      bars+=`<text x="${x+barW/2}" y="${H-PAD_B+12}" text-anchor="middle" font-size="7.5" fill="#333" font-family="Sarabun,sans-serif">${lab.substring(0,mid)}</text>`;
+      if(lab.length>mid) bars+=`<text x="${x+barW/2}" y="${H-PAD_B+22}" text-anchor="middle" font-size="7.5" fill="#333" font-family="Sarabun,sans-serif">${lab.substring(mid)}</text>`;
+    });
+    [Math.ceil(maxCount/2),maxCount].filter(v=>v>0).forEach(v=>{
+      const gy=PAD_T+chartH*(1-v/maxCount);
+      grid+=`<line x1="${PAD_L}" y1="${gy}" x2="${W-PAD_R}" y2="${gy}" stroke="#ddd" stroke-width="0.5" stroke-dasharray="2,2"/>`;
+      grid+=`<text x="${PAD_L-2}" y="${gy}" text-anchor="end" dominant-baseline="middle" font-size="6" fill="#aaa" font-family="Sarabun,sans-serif">${v}</text>`;
+    });
+    const svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;">${grid}${bars}</svg>`;
+    const chips=lvKeys.map((k,i)=>`<span style="display:inline-block;margin:1px 3px 1px 0;padding:2px 7px;border-radius:10px;font-size:8px;font-weight:700;background:${lvBgs[i]};color:${lvColors[i]};">${lvLabels[i]}: ${counts[k]}</span>`).join('');
+    return `<td style="width:50%;padding:8px 10px;vertical-align:top;border:1px solid #e8edf2;border-radius:8px;">
+      <div style="font-size:11px;font-weight:700;color:${c.color};margin-bottom:4px;border-left:3px solid ${c.color};padding-left:6px;">ส${c.id}: ${c.name}</div>
+      ${svg}
+      <div style="margin-top:4px;line-height:1.4;">${chips}</div>
+    </td>`;
+  });
+
+  // จัดเป็นแถว ๆ ละ 2
+  let rows='';
+  for(let i=0;i<chartCells.length;i+=2){
+    const r2=chartCells[i+1]||'<td style="width:50%;"></td>';
+    rows+=`<tr>${chartCells[i]}${r2}</tr>`;
+  }
+
+  const logoHtml=schoolLogo
+    ?`<img src="${schoolLogo}" style="width:56px;height:56px;object-fit:cover;border-radius:50%;border:3px solid rgba(255,255,255,0.4);">`
+    :`<div style="font-size:36px;line-height:1">🏫</div>`;
+
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+    body{font-family:'Sarabun',sans-serif;color:#1a2433;width:210mm;margin:0 auto;background:white;}
+    @page{size:A4 portrait;margin:12mm;}
+    @media print{body{width:100%;}}
+    table{border-collapse:collapse;}
+    .print-footer{margin-top:14px;padding-top:6px;border-top:1px solid #ddd;text-align:center;font-size:9px;color:#999;}
+  </style></head><body>
+
+  <div style="background:linear-gradient(135deg,#1a3a5c 0%,#2d6a9f 100%);padding:14px 20px 12px;text-align:center;color:white;">
+    <div style="margin-bottom:8px;">${logoHtml}</div>
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px;">รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน (รายงานรวม)</div>
+    <div style="font-size:11px;opacity:0.9;">
+      ${school.name?`โรงเรียน${school.name}`:''} ${school.dept?`· ${school.dept}`:''}
+      ${school.grade?`· ชั้น${school.grade}`:''} ${school.room?`ห้อง ${school.room}`:''}
+    </div>
+  </div>
+
+  <div style="padding:12px 16px;">
+    <div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:10px;border-left:4px solid #f0a500;padding-left:8px;">กราฟแสดงจำนวนนักเรียนตามระดับสมรรถนะ (จำนวน ${students.length} คน)</div>
+
+    <table style="width:100%;border-collapse:separate;border-spacing:6px;">
+      ${rows}
+    </table>
+
+    <div style="margin-top:14px;text-align:center;font-size:12px;color:#333;line-height:1.9;">
+      <div>ลงชื่อ .............................................</div>
+      <div style="margin-top:2px;">ผู้ประเมิน</div>
+      <div>(${school.teacher||'...................................'})</div>
+      <div>ตำแหน่ง ${school.teacherPos||'ผู้ประเมิน'}</div>
+      <div style="font-size:11px;color:#888;margin-top:4px;">วันที่ ${thaiDate}</div>
+    </div>
   </div>
 
   <div class="print-footer">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน${schoolStr}</div>
@@ -1258,6 +1368,7 @@ function triggerPrint(){
   const school=getSchoolData(),logo=schoolLogo?`<img src="${schoolLogo}" style="width:60px;height:60px;object-fit:cover;border-radius:50%;margin-bottom:8px">`:'';
   const hdr=`<div style="text-align:center;margin-bottom:14px">${logo}`;
   if(currentPage==='cover'){printCoverPage();return;}
+  if(currentPage==='groupreport'){printGroupReport();return;}
   if(currentPage==='data'){
     const rows=students.map(s=>`<tr><td>${s.no}</td><td>${s.id}</td><td>${s.name}</td></tr>`).join('');
     printHTML(hdr+`<h2>รายชื่อนักเรียน</h2><p>โรงเรียน${school.name} · ${school.grade}/${school.room} · ปีการศึกษา 2568</p></div><table border="1" cellpadding="8" style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a3a5c;color:white"><th>ที่</th><th>เลขประจำตัว</th><th>ชื่อ - สกุล</th></tr></thead><tbody>${rows}</tbody></table>`);
