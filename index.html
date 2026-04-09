@@ -1039,11 +1039,11 @@ function printCoverPage(){
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap');
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Sarabun',sans-serif;color:#1a2433;width:210mm;min-height:297mm;padding:0;margin:0 auto;background:white;}
+    body{font-family:'Sarabun',sans-serif;color:#1a2433;width:210mm;height:297mm;max-height:297mm;padding:0;margin:0 auto;background:white;overflow:hidden;}
     @page{size:A4 portrait;margin:12mm;}
     @media print{
       *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
-      body{width:100%;padding:0;margin:0;}
+      body{width:100%;padding:0;margin:0;height:297mm;max-height:297mm;overflow:hidden;}
     }
     .cover-header{background:linear-gradient(135deg,#1a3a5c 0%,#2d6a9f 100%);padding:16px 20px 14px;text-align:center;color:white;}
     .cover-body{padding:12px 20px 10px;}
@@ -1259,8 +1259,7 @@ function printGroupReport(){
     </table>
 
     <div style="margin-top:14px;text-align:center;font-size:12px;color:#333;line-height:1.9;">
-      <div>ลงชื่อ .............................................</div>
-      <div style="margin-top:2px;">ผู้ประเมิน</div>
+      <div>ลงชื่อ....................................ผู้ประเมิน</div>
       <div>(${school.teacher||'...................................'})</div>
       <div>ตำแหน่ง ${school.teacherPos||'ผู้ประเมิน'}</div>
       <div style="font-size:11px;color:#888;margin-top:4px;">วันที่ ${thaiDate}</div>
