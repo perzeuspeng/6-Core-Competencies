@@ -970,7 +970,7 @@ function renderCover(){
           <div class="cover-sign-role">ลงชื่อผู้ประเมิน</div>
           <div class="cover-sign-line"></div>
           <div class="cover-sign-name">(${school.teacher||'..........................'})</div>
-          <div class="cover-sign-pos">${school.teacherPos||'ครูประจำชั้น'}</div>
+          <div class="cover-sign-pos">${school.teacherPos||'ผู้ประเมิน'}</div>
           <div style="font-size:11px;color:var(--text2);margin-top:4px">วันที่ ${thaiDate}</div>
         </div>
         <div class="cover-sign-box">
@@ -1137,7 +1137,7 @@ function printCoverPage(){
           <div style="font-size:11px;font-weight:700;color:#5a6a7a;margin-bottom:28px;">ลงชื่อผู้ประเมิน</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
           <div style="font-size:12px;font-weight:700;">(${school.teacher||'...................................'})</div>
-          <div style="font-size:11px;color:#666;margin-top:3px;">${school.teacherPos||'ครูประจำชั้น/ผู้ประเมิน'}</div>
+          <div style="font-size:11px;color:#666;margin-top:3px;">${school.teacherPos||'ผู้ประเมิน'}</div>
           <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ ${thaiDate}</div>
         </td>
         <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:16px 12px;text-align:center;vertical-align:top;">
@@ -1182,7 +1182,7 @@ function renderReport(){
   const overall=p>=60?{label:'ผ่าน',cls:'pass'}:{label:'ไม่ผ่าน',cls:'fail'};
   const cRows=cs.map(({c,score})=>{const p2=pct(score,c.max),lv2=getLevel(p2);return `<div class="comp-result-row"><div class="comp-result-name">ที่ ${c.id}: ${c.short}<br><span style="color:var(--text2);font-size:10px">(${c.max})</span></div><div class="comp-result-bar"><div class="bar-track" style="height:14px"><div class="bar-fill" style="width:${p2}%;background:${c.color};font-size:9px">${p2}%</div></div></div><div class="comp-result-score">${score}/${c.max}<br>${badge(lv2)}</div></div>`;}).join('');
   const iRows=COMP.map(c=>{const arr=s.scores['c'+c.id]||[0,0,0,0,0];return `<tr style="font-size:12px"><td style="padding:6px;text-align:left">${c.short}</td>${arr.map(v=>`<td style="padding:6px;text-align:center">${v}</td>`).join('')}<td style="padding:6px;text-align:center;font-weight:700">${arr.reduce((a,b)=>a+b,0)}</td></tr>`;}).join('');
-  document.getElementById('report-content').innerHTML=`<div class="report-wrap"><div class="report-top">${schoolLogo?`<img src="${schoolLogo}" alt="ตรา" style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:3px solid var(--light);margin-bottom:10px">`:`<div style="font-size:40px;margin-bottom:8px">🏫</div>`}<h2>รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน</h2><p>โรงเรียน${school.name||'บ้านยอดดอนชี'}</p><p>${school.dept||'สพป.อุบลราชธานี เขต 3'}</p></div><div class="report-info-grid"><div class="report-info-cell"><strong>เลขที่</strong>${s.no}</div><div class="report-info-cell"><strong>เลขประจำตัว</strong>${s.id}</div><div class="report-info-cell full"><strong>ชื่อ - สกุล</strong>${s.name}</div><div class="report-info-cell"><strong>ระดับชั้น</strong>${school.grade}/${school.room}</div><div class="report-info-cell"><strong>ปีการศึกษา</strong>2568</div></div>${cRows}<div class="report-total"><div style="font-size:13px;font-weight:600">คะแนนรวมทั้งหมด</div><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px;font-weight:800">${total}/${TOTAL_MAX}</div><div><div style="font-size:16px;font-weight:700">${p}%</div>${badge(lv)}</div>${badge(overall)}</div></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--primary);color:white"><th style="padding:8px;text-align:left">สมรรถนะ</th><th style="padding:8px">ข้อ1</th><th style="padding:8px">ข้อ2</th><th style="padding:8px">ข้อ3</th><th style="padding:8px">ข้อ4</th><th style="padding:8px">ข้อ5</th><th style="padding:8px">รวม</th></tr></thead><tbody>${iRows}</tbody></table></div><div style="text-align:center;margin-top:24px;font-size:13px;color:var(--text2)"><div>ลงชื่อ .............................................</div><div style="margin-top:4px">ครูประจำชั้น/ผู้ประเมิน</div><div>(${school.teacher})</div><div>ตำแหน่ง ${school.teacherPos}</div></div></div>`;
+  document.getElementById('report-content').innerHTML=`<div class="report-wrap"><div class="report-top">${schoolLogo?`<img src="${schoolLogo}" alt="ตรา" style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:3px solid var(--light);margin-bottom:10px">`:`<div style="font-size:40px;margin-bottom:8px">🏫</div>`}<h2>รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน</h2><p>โรงเรียน${school.name||'บ้านยอดดอนชี'}</p><p>${school.dept||'สพป.อุบลราชธานี เขต 3'}</p></div><div class="report-info-grid"><div class="report-info-cell"><strong>เลขที่</strong>${s.no}</div><div class="report-info-cell"><strong>เลขประจำตัว</strong>${s.id}</div><div class="report-info-cell full"><strong>ชื่อ - สกุล</strong>${s.name}</div><div class="report-info-cell"><strong>ระดับชั้น</strong>${school.grade}/${school.room}</div><div class="report-info-cell"><strong>ปีการศึกษา</strong>2568</div></div>${cRows}<div class="report-total"><div style="font-size:13px;font-weight:600">คะแนนรวมทั้งหมด</div><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px;font-weight:800">${total}/${TOTAL_MAX}</div><div><div style="font-size:16px;font-weight:700">${p}%</div>${badge(lv)}</div>${badge(overall)}</div></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--primary);color:white"><th style="padding:8px;text-align:left">สมรรถนะ</th><th style="padding:8px">ข้อ1</th><th style="padding:8px">ข้อ2</th><th style="padding:8px">ข้อ3</th><th style="padding:8px">ข้อ4</th><th style="padding:8px">ข้อ5</th><th style="padding:8px">รวม</th></tr></thead><tbody>${iRows}</tbody></table></div><div style="text-align:center;margin-top:24px;font-size:13px;color:var(--text2)"><div>ลงชื่อ .............................................</div><div style="margin-top:4px">ผู้ประเมิน</div><div>(${school.teacher})</div><div>ตำแหน่ง ${school.teacherPos}</div></div></div>`;
 }
 
 // ===== PRINT =====
@@ -1224,7 +1224,7 @@ function triggerPrint(){
       </tr>`;
     }).join('');
     const sig=`<div style="text-align:center;font-size:13px;color:#333;line-height:2;margin-top:28px;">
-      <div>ลงชื่อ .............................................ครูประจำชั้น/ผู้ประเมิน</div>
+      <div>ลงชื่อ .............................................ผู้ประเมิน</div>
       <div>(${school.teacher||'...................................'})</div>
       <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
     </div>`;
@@ -1292,7 +1292,7 @@ function triggerPrint(){
       </tr>`;
     }).join('');
     const sig=`<div style="text-align:center;font-size:13px;color:#333;line-height:2;margin-top:28px;">
-      <div>ลงชื่อ .............................................ครูประจำชั้น/ผู้ประเมิน</div>
+      <div>ลงชื่อ .............................................ผู้ประเมิน</div>
       <div>(${school.teacher||'...................................'})</div>
       <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
     </div>`;
@@ -1476,7 +1476,7 @@ function printReport(){
 
   <!-- ลายเซ็น -->
   <div style="text-align:center;font-size:13px;color:#333;line-height:2;margin-top:10px;">
-    <div>ลงชื่อ .............................................ครูประจำชั้น/ผู้ประเมิน</div>
+    <div>ลงชื่อ .............................................ผู้ประเมิน</div>
     <div>(${school.teacher||'...................................'})</div>
     <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
   </div>`;
