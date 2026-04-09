@@ -278,15 +278,15 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
               </div>
             </div>
           </div>
-          <div class="field-group"><div class="field-label">ชื่อโรงเรียน</div><input class="field-input" id="f-school" value="บ้านยอดดอนชี"></div>
-          <div class="field-group"><div class="field-label">สังกัด</div><input class="field-input" id="f-dept" value="สพป.อุบลราชธานี เขต 3"></div>
-          <div class="field-group"><div class="field-label">ผู้อำนวยการ</div><input class="field-input" id="f-director" value="นายสุริยเทพ ภาเรือง"></div>
+          <div class="field-group"><div class="field-label">ชื่อโรงเรียน</div><input class="field-input" id="f-school" value="บ้านยอดดอนชี" oninput="scheduleSync()"></div>
+          <div class="field-group"><div class="field-label">สังกัด</div><input class="field-input" id="f-dept" value="สพป.อุบลราชธานี เขต 3" oninput="scheduleSync()"></div>
+          <div class="field-group"><div class="field-label">ผู้อำนวยการ</div><input class="field-input" id="f-director" value="นายสุริยเทพ ภาเรือง" oninput="scheduleSync()"></div>
           <div class="field-row">
-            <div class="field-group"><div class="field-label">ระดับชั้น</div><input class="field-input" id="f-grade" value="ประถมศึกษาปีที่ 2"></div>
-            <div class="field-group"><div class="field-label">ห้อง / ปีการศึกษา</div><input class="field-input" id="f-room" value="1 / 2568"></div>
+            <div class="field-group"><div class="field-label">ระดับชั้น</div><input class="field-input" id="f-grade" value="ประถมศึกษาปีที่ 2" oninput="scheduleSync()"></div>
+            <div class="field-group"><div class="field-label">ห้อง / ปีการศึกษา</div><input class="field-input" id="f-room" value="1 / 2568" oninput="scheduleSync()"></div>
           </div>
-          <div class="field-group"><div class="field-label">ครูผู้ประเมิน</div><input class="field-input" id="f-teacher" value="นายปกรณ์ มั่นจิต"></div>
-          <div class="field-group"><div class="field-label">ตำแหน่ง</div><input class="field-input" id="f-teacher-pos" value="พนักงานราชการ"></div>
+          <div class="field-group"><div class="field-label">ครูผู้ประเมิน</div><input class="field-input" id="f-teacher" value="นายปกรณ์ มั่นจิต" oninput="scheduleSync()"></div>
+          <div class="field-group"><div class="field-label">ตำแหน่ง</div><input class="field-input" id="f-teacher-pos" value="พนักงานราชการ" oninput="scheduleSync()"></div>
         </div>
 
         <div class="card">
@@ -422,18 +422,27 @@ function signInWithGoogle(){
     client_id:CLIENT_ID, scope:SCOPES,
     callback:async resp=>{
       if(resp.error){hideLoading();showToast('❌ ล็อกอินไม่สำเร็จ: '+resp.error);return;}
+
+      // Detect if this is a different user switching account
+      const prevUser=localStorage.getItem('gui');
+      const prevSub=prevUser?JSON.parse(prevUser).sub:'';
+
       accessToken=resp.access_token;
       const expiry=Date.now()+(resp.expires_in||3600)*1000;
       localStorage.setItem('gat',accessToken);
       localStorage.setItem('gat_exp',expiry.toString());
-      // Clear old user's fileId before fetching new user info
-      const oldUser=localStorage.getItem('gui');
-      const newSub=null; // will be set after fetchUserInfo
+
+      // Get new user info first
       driveFileId=null;
       await fetchUserInfo();
-      // If different user logged in, clear their cached fileId
-      const prevFidKey=oldUser?'gfid_'+(JSON.parse(oldUser).sub||''):'';
-      // Use per-user key for driveFileId
+
+      // If user changed → reset ALL in-memory data before loading Drive
+      const newSub=userInfo?userInfo.sub:'';
+      if(prevSub && prevSub!==newSub){
+        resetAppData();
+        showToast('🔄 เปลี่ยนบัญชี กำลังโหลดข้อมูลของ '+userInfo.name+'...');
+      }
+
       await loadFromDrive();
       showApp();
       hideLoading();
@@ -613,6 +622,9 @@ async function syncToDrive(){
     }
 
     localStorage.setItem('smartnana_data',jsonBody);
+    // Also save to per-user key
+    const ukey='smartnana_'+((userInfo&&(userInfo.sub||userInfo.email))||'default');
+    localStorage.setItem(ukey,jsonBody);
     lastSyncTime=new Date();
     setDriveStatus('synced','ซิงค์แล้ว',fmtTime(lastSyncTime));
     document.getElementById('user-modal-drive-info').textContent=`ไฟล์: ${DRIVE_FILE_NAME} · บันทึก ${fmtTime(lastSyncTime)}`;
@@ -629,35 +641,97 @@ async function syncToDrive(){
 // ===== DATA =====
 function buildSaveData(){return{students,schoolLogo,school:getSchoolData(),savedAt:new Date().toISOString(),version:2};}
 
+// Reset ALL in-memory app data to blank slate (called when switching accounts)
+function resetAppData(){
+  students=[];
+  schoolLogo='';
+  // Reset form fields
+  const fields={
+    'f-school':'','f-dept':'','f-director':'',
+    'f-grade':'','f-room':'','f-teacher':'','f-teacher-pos':''
+  };
+  Object.entries(fields).forEach(([id,v])=>{
+    const el=document.getElementById(id);if(el)el.value=v;
+  });
+  // Reset logo UI
+  const img=document.getElementById('logo-preview-img');
+  if(img){img.style.display='none';img.src='';}
+  const ph=document.getElementById('logo-preview-placeholder');
+  if(ph)ph.style.display='block';
+  const rb=document.getElementById('logo-remove-btn');
+  if(rb)rb.style.display='none';
+  const ti=document.getElementById('topbar-logo-img');
+  if(ti){ti.style.display='none';ti.src='';}
+  const tic=document.getElementById('topbar-logo-icon');
+  if(tic)tic.style.display='block';
+  renderStudentList();
+}
+
+// Apply loaded data — fully replaces current state
 function applyLoadedData(d){
-  if(d.students)students=d.students;
-  if(d.schoolLogo){schoolLogo=d.schoolLogo;setTimeout(()=>applyLogo(schoolLogo),200);}
+  // Always replace — never merge — so switching users gives clean slate
+  students = d.students ? JSON.parse(JSON.stringify(d.students)) : [];
+
+  if(d.schoolLogo && d.schoolLogo!==schoolLogo){
+    schoolLogo=d.schoolLogo;
+    setTimeout(()=>applyLogo(schoolLogo),200);
+  } else if(!d.schoolLogo){
+    schoolLogo='';
+    // Clear logo UI if none saved
+    const img=document.getElementById('logo-preview-img');
+    if(img){img.style.display='none';img.src='';}
+    const ph=document.getElementById('logo-preview-placeholder');
+    if(ph)ph.style.display='block';
+    const rb=document.getElementById('logo-remove-btn');
+    if(rb)rb.style.display='none';
+    const ti=document.getElementById('topbar-logo-img');
+    if(ti){ti.style.display='none';ti.src='';}
+    const tic=document.getElementById('topbar-logo-icon');
+    if(tic)tic.style.display='block';
+  }
+
   if(d.school){
     setTimeout(()=>{
       const s=d.school;
-      if(s.name)document.getElementById('f-school').value=s.name;
-      if(s.dept)document.getElementById('f-dept').value=s.dept;
-      if(s.director)document.getElementById('f-director').value=s.director;
-      if(s.grade)document.getElementById('f-grade').value=s.grade;
-      if(s.room)document.getElementById('f-room').value=s.room;
-      if(s.teacher)document.getElementById('f-teacher').value=s.teacher;
-      if(s.teacherPos)document.getElementById('f-teacher-pos').value=s.teacherPos;
+      document.getElementById('f-school').value=s.name||'';
+      document.getElementById('f-dept').value=s.dept||'';
+      document.getElementById('f-director').value=s.director||'';
+      document.getElementById('f-grade').value=s.grade||'';
+      document.getElementById('f-room').value=s.room||'';
+      document.getElementById('f-teacher').value=s.teacher||'';
+      document.getElementById('f-teacher-pos').value=s.teacherPos||'';
     },100);
   }
   renderStudentList();
 }
 
+// Load from per-user localStorage cache (fallback only)
 function loadFromLocal(){
-  try{const r=localStorage.getItem('smartnana_data');if(r)applyLoadedData(JSON.parse(r));}catch(e){}
+  try{
+    const key='smartnana_'+((userInfo&&(userInfo.sub||userInfo.email))||'default');
+    const r=localStorage.getItem(key);
+    if(r){applyLoadedData(JSON.parse(r));return;}
+    // Legacy key fallback
+    const r2=localStorage.getItem('smartnana_data');
+    if(r2)applyLoadedData(JSON.parse(r2));
+  }catch(e){}
 }
 
 function getSchoolData(){
   return{name:document.getElementById('f-school')?.value||'',dept:document.getElementById('f-dept')?.value||'',director:document.getElementById('f-director')?.value||'',grade:document.getElementById('f-grade')?.value||'',room:document.getElementById('f-room')?.value||'',teacher:document.getElementById('f-teacher')?.value||'',teacherPos:document.getElementById('f-teacher-pos')?.value||''};
 }
 
-// Auto-sync every 2 min
+// Auto-sync: debounce after data change + periodic interval
+let syncDebounceTimer=null;
+function scheduleSync(){
+  // Debounce — sync 10s after last change
+  if(syncDebounceTimer)clearTimeout(syncDebounceTimer);
+  syncDebounceTimer=setTimeout(()=>{if(accessToken)syncToDrive();},10000);
+}
+
 function startAutoSync(){
   if(autoSyncTimer)clearInterval(autoSyncTimer);
+  // Periodic sync every 2 minutes as backup
   autoSyncTimer=setInterval(()=>{if(accessToken)syncToDrive();},120000);
 }
 
@@ -673,7 +747,7 @@ function handleLogoUpload(e){
   const f=e.target.files[0];if(!f)return;
   if(f.size>2*1024*1024){showToast('⚠️ ไฟล์ใหญ่เกิน 2MB');return;}
   const r=new FileReader();
-  r.onload=ev=>{schoolLogo=ev.target.result;applyLogo(schoolLogo);showToast('✅ อัปโหลดตราแล้ว');};
+  r.onload=ev=>{schoolLogo=ev.target.result;applyLogo(schoolLogo);showToast('✅ อัปโหลดตราแล้ว');scheduleSync();};
   r.readAsDataURL(f);e.target.value='';
 }
 function applyLogo(src){
@@ -693,7 +767,7 @@ function removeLogo(e){
   document.getElementById('logo-remove-btn').style.display='none';
   document.getElementById('topbar-logo-img').style.display='none';
   document.getElementById('topbar-logo-icon').style.display='block';
-  showToast('🗑️ ลบตราแล้ว');
+  showToast('🗑️ ลบตราแล้ว');scheduleSync();
 }
 
 // ===== HELPERS =====
@@ -728,9 +802,9 @@ function saveStudent(){
   if(!id||!name){showToast('⚠️ กรุณากรอกข้อมูลให้ครบ');return;}
   if(editingStudentIdx!==null){students[editingStudentIdx].id=id;students[editingStudentIdx].name=name;showToast('✅ แก้ไขแล้ว');}
   else{const no=students.length?Math.max(...students.map(s=>s.no))+1:1;const es={};COMP.forEach(c=>{es['c'+c.id]=[0,0,0,0,0];});students.push({no,id,name,scores:es});showToast('✅ เพิ่มนักเรียนแล้ว');}
-  closeModal('student-modal');renderStudentList();
+  closeModal('student-modal');renderStudentList();scheduleSync();
 }
-function deleteStudent(i){if(!confirm(`ลบ "${students[i].name}"?`))return;students.splice(i,1);students.forEach((s,idx)=>s.no=idx+1);renderStudentList();showToast('🗑️ ลบแล้ว');}
+function deleteStudent(i){if(!confirm(`ลบ "${students[i].name}"?`))return;students.splice(i,1);students.forEach((s,idx)=>s.no=idx+1);renderStudentList();showToast('🗑️ ลบแล้ว');scheduleSync();}
 
 // ===== SCORES =====
 function renderCompChips(){document.getElementById('comp-chips').innerHTML=COMP.map(c=>`<div class="comp-chip ${c.id===currentComp?'active':''}" onclick="selectComp(${c.id})">สมรรถนะ ${c.id}: ${c.short}</div>`).join('');}
@@ -753,6 +827,7 @@ function adjScore(si,ci,ii,delta){
   const el=document.getElementById(`sv-${si}-${c.id}-${ii}`);if(el)el.textContent=v;
   const arr=students[si].scores[key],total=arr.reduce((a,b)=>a+b,0);
   const tel=document.getElementById(`st-${si}-${c.id}`);if(tel)tel.textContent=`${total}/${c.max}`;
+  scheduleSync();
 }
 
 // ===== SUMMARY =====
