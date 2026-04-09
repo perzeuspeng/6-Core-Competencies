@@ -315,6 +315,14 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
       <div id="page-scores" class="page">
         <div class="card" style="padding-bottom:10px"><div class="card-title" style="margin-bottom:12px"><div class="card-title-dot"></div>เลือกสมรรถนะ</div><div class="comp-chips" id="comp-chips"></div></div>
         <div id="score-list"></div>
+        <div id="score-confirm-bar" style="margin-top:4px;margin-bottom:14px;display:none">
+          <div style="background:#fff8e1;border:1.5px solid #f0a500;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="font-size:13px;color:#7d6608;flex:1">⚠️ มีการเปลี่ยนแปลงคะแนนที่ยังไม่ได้บันทึก</div>
+          </div>
+        </div>
+        <button class="btn btn-success btn-full" id="score-confirm-btn" style="margin-bottom:20px;display:none" onclick="confirmSaveScores()">
+          ✅ ยืนยันและบันทึกคะแนน
+        </button>
       </div>
 
       <!-- PAGE: สรุปผล -->
@@ -813,7 +821,17 @@ function deleteStudent(i){if(!confirm(`ลบ "${students[i].name}"?`))return;st
 
 // ===== SCORES =====
 function renderCompChips(){document.getElementById('comp-chips').innerHTML=COMP.map(c=>`<div class="comp-chip ${c.id===currentComp?'active':''}" onclick="selectComp(${c.id})">สมรรถนะ ${c.id}: ${c.short}</div>`).join('');}
-function selectComp(id){currentComp=id;renderCompChips();renderScoreList();document.getElementById('scroll-area').scrollTop=0;}
+function selectComp(id){
+  currentComp=id;
+  renderCompChips();
+  renderScoreList();
+  // Hide unsaved indicator when switching tabs
+  const bar=document.getElementById('score-confirm-bar');
+  const btn=document.getElementById('score-confirm-btn');
+  if(bar)bar.style.display='none';
+  if(btn)btn.style.display='none';
+  document.getElementById('scroll-area').scrollTop=0;
+}
 function renderScoreList(){
   const c=COMP.find(x=>x.id===currentComp);
   let html=`<div class="card" style="border-left:4px solid ${c.color};margin-bottom:10px"><div style="font-size:13px;font-weight:700;color:${c.color}">สมรรถนะที่ ${c.id}: ${c.name}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${c.nameEn} · สูงสุด ${c.max} คะแนน (ข้อละ ${c.per})</div><div style="margin-top:8px;font-size:11px;color:var(--text2)">${c.ind.map((d,i)=>`<div>ข้อ ${i+1}: ${d}</div>`).join('')}</div></div>`;
@@ -832,7 +850,24 @@ function adjScore(si,ci,ii,delta){
   const el=document.getElementById(`sv-${si}-${c.id}-${ii}`);if(el)el.textContent=v;
   const arr=students[si].scores[key],total=arr.reduce((a,b)=>a+b,0);
   const tel=document.getElementById(`st-${si}-${c.id}`);if(tel)tel.textContent=`${total}/${c.max}`;
+  markScoreUnsaved();
+}
+
+function markScoreUnsaved(){
+  const bar=document.getElementById('score-confirm-bar');
+  const btn=document.getElementById('score-confirm-btn');
+  if(bar)bar.style.display='block';
+  if(btn)btn.style.display='flex';
   scheduleSync();
+}
+
+function confirmSaveScores(){
+  syncToDrive();
+  const bar=document.getElementById('score-confirm-bar');
+  const btn=document.getElementById('score-confirm-btn');
+  if(bar)bar.style.display='none';
+  if(btn)btn.style.display='none';
+  showToast('✅ บันทึกคะแนนไปยัง Drive แล้ว');
 }
 
 // ===== SUMMARY =====
@@ -878,7 +913,90 @@ function triggerPrint(){
     const rows=students.map(s=>{const sc=COMP.map(c=>getCS(s,c.id)),total=sc.reduce((a,b)=>a+b,0),p=pct(total,TOTAL_MAX);return `<tr><td>${s.no}</td><td>${s.name}</td>${sc.map(v=>`<td>${v}</td>`).join('')}<td>${total}</td><td>${p}%</td><td>${getLevel(p).label}</td></tr>`;}).join('');
     printHTML(hdr+`<h2>สรุปผลการประเมินสมรรถนะหลัก 6 ด้าน</h2><p>โรงเรียน${school.name} · ${school.grade}/${school.room}</p></div><table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1a3a5c;color:white"><th>ที่</th><th>ชื่อ-สกุล</th>${COMP.map(c=>`<th>ส${c.id}(${c.max})</th>`).join('')}<th>รวม</th><th>%</th><th>ผล</th></tr></thead><tbody>${rows}</tbody></table>`);
   } else {
-    printHTML(document.getElementById('report-content').innerHTML);
+    // PAGE: รายงาน — build print content directly from data (no CSS bar charts)
+    const idx=parseInt(document.getElementById('report-select').value);
+    if(isNaN(idx)||!students[idx]){showToast('⚠️ กรุณาเลือกนักเรียนก่อน');return;}
+    const s=students[idx],school=getSchoolData();
+    const cs=COMP.map(c=>({c,score:getCS(s,c.id)}));
+    const total=cs.reduce((sum,x)=>sum+x.score,0),p=pct(total,TOTAL_MAX),lv=getLevel(p);
+    const overall=p>=60?{label:'ผ่าน',cls:'pass'}:{label:'ไม่ผ่าน',cls:'fail'};
+    const logoHtml=schoolLogo?`<img src="${schoolLogo}" style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:3px solid #e8f4fd;margin-bottom:10px">`:'';
+
+    // Competency score rows — table instead of CSS bar
+    const compTableRows=cs.map(({c,score})=>{
+      const p2=pct(score,c.max),lv2=getLevel(p2);
+      const bar=`<div style="background:#ecf0f1;border-radius:4px;height:10px;overflow:hidden;"><div style="width:${p2}%;height:100%;background:${c.color};border-radius:4px;"></div></div>`;
+      return `<tr>
+        <td style="padding:7px 8px;font-size:12px">สมรรถนะ ${c.id}: ${c.name}<br><span style="color:#666;font-size:10px">${c.nameEn} (${c.max} คะแนน)</span></td>
+        <td style="padding:7px 8px;text-align:center;font-weight:700;font-size:13px">${score}/${c.max}</td>
+        <td style="padding:7px 8px;text-align:center;font-size:12px">${p2}%</td>
+        <td style="padding:7px 8px;width:120px">${bar}</td>
+        <td style="padding:7px 8px;text-align:center"><span class="badge badge-${lv2.cls}">${lv2.label}</span></td>
+      </tr>`;
+    }).join('');
+
+    // Item score rows
+    const iRows=COMP.map(c=>{
+      const arr=s.scores['c'+c.id]||[0,0,0,0,0];
+      return `<tr><td style="padding:6px;text-align:left;font-size:12px">${c.short}</td>${arr.map(v=>`<td style="padding:6px;text-align:center;font-size:12px">${v}</td>`).join('')}<td style="padding:6px;text-align:center;font-weight:700;font-size:12px">${arr.reduce((a,b)=>a+b,0)}</td></tr>`;
+    }).join('');
+
+    const printContent=`
+      <div style="text-align:center;margin-bottom:16px">
+        ${logoHtml}
+        <h2 style="font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:4px">รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน</h2>
+        ${school.name?`<p style="font-size:13px;color:#555">โรงเรียน${school.name}</p>`:''}
+        ${school.dept?`<p style="font-size:12px;color:#888">${school.dept}</p>`:''}
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px">
+        <tr><td style="padding:6px 10px;background:#e8f4fd;border-radius:4px;width:50%"><strong style="font-size:10px;color:#5a6a7a;display:block">เลขที่</strong>${s.no}</td>
+            <td style="padding:6px 10px;background:#e8f4fd;border-radius:4px"><strong style="font-size:10px;color:#5a6a7a;display:block">เลขประจำตัว</strong>${s.id}</td></tr>
+        <tr><td colspan="2" style="padding:6px 10px;background:#e8f4fd;border-radius:4px;margin-top:4px"><strong style="font-size:10px;color:#5a6a7a;display:block">ชื่อ - สกุล</strong>${s.name}</td></tr>
+        <tr><td style="padding:6px 10px;background:#e8f4fd;border-radius:4px"><strong style="font-size:10px;color:#5a6a7a;display:block">ระดับชั้น</strong>${school.grade||''}/${school.room||''}</td>
+            <td style="padding:6px 10px;background:#e8f4fd;border-radius:4px"><strong style="font-size:10px;color:#5a6a7a;display:block">ปีการศึกษา</strong>${school.room?school.room.split('/')[1]||'2568':'2568'}</td></tr>
+      </table>
+
+      <h3 style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:8px">ผลการประเมินแต่ละสมรรถนะ</h3>
+      <table border="1" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-bottom:14px">
+        <thead><tr style="background:#1a3a5c;color:white">
+          <th style="padding:8px;text-align:left;font-size:12px">สมรรถนะ</th>
+          <th style="padding:8px;font-size:12px">คะแนน</th>
+          <th style="padding:8px;font-size:12px">ร้อยละ</th>
+          <th style="padding:8px;font-size:12px">แผนภูมิ</th>
+          <th style="padding:8px;font-size:12px">ผล</th>
+        </tr></thead>
+        <tbody>${compTableRows}</tbody>
+      </table>
+
+      <div style="background:#1a3a5c;color:white;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600">คะแนนรวมทั้งหมด</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:22px;font-weight:800">${total}/${TOTAL_MAX}</div>
+          <div style="font-size:16px;font-weight:700">${p}%</div>
+          <span class="badge badge-${lv.cls}">${lv.label}</span>
+          <span class="badge badge-${overall.cls}">${overall.label}</span>
+        </div>
+      </div>
+
+      <h3 style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:8px">คะแนนรายข้อ</h3>
+      <table border="1" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-bottom:24px">
+        <thead><tr style="background:#1a3a5c;color:white">
+          <th style="padding:7px;text-align:left;font-size:12px">สมรรถนะ</th>
+          <th style="padding:7px;font-size:12px">ข้อ 1</th><th style="padding:7px;font-size:12px">ข้อ 2</th>
+          <th style="padding:7px;font-size:12px">ข้อ 3</th><th style="padding:7px;font-size:12px">ข้อ 4</th>
+          <th style="padding:7px;font-size:12px">ข้อ 5</th><th style="padding:7px;font-size:12px">รวม</th>
+        </tr></thead>
+        <tbody>${iRows}</tbody>
+      </table>
+
+      <div style="text-align:right;margin-top:32px;font-size:13px;color:#555">
+        <div>ลงชื่อ .............................................</div>
+        <div style="margin-top:4px">ครูประจำชั้น/ผู้ประเมิน</div>
+        <div style="margin-top:2px">(${school.teacher||'...........................'})</div>
+        <div style="margin-top:2px">ตำแหน่ง ${school.teacherPos||'...........................'}</div>
+      </div>
+    `;
+    printHTML(printContent);
   }
 }
 
