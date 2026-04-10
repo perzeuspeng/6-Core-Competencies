@@ -1525,38 +1525,20 @@ function printReport(){
   const compRows=cs.map(({c,score})=>{
     const p2=pct(score,c.max);
     const lv2=getLevel(p2);
-    // ใช้ SVG — พิมพ์สีได้ทุก browser โดยไม่ต้องพึ่ง background-color
-    const BAR_W=280, BAR_H=20;
+    const BAR_W=240, BAR_H=16;
     const filledW=Math.round(BAR_W*p2/100);
     const labelX=filledW>30?filledW-4:filledW+4;
     const labelAnchor=filledW>30?'end':'start';
     const labelFill=filledW>30?'white':c.color;
-    const barHtml=`<svg width="${BAR_W}" height="${BAR_H}" viewBox="0 0 ${BAR_W} ${BAR_H}" style="display:block;max-width:100%;">
-      <rect x="0" y="0" width="${BAR_W}" height="${BAR_H}" rx="3" fill="#ecf0f1"/>
-      ${filledW>0?`<rect x="0" y="0" width="${filledW}" height="${BAR_H}" rx="3" fill="${c.color}"/>`:''}
-      ${p2>0?`<text x="${labelX}" y="${BAR_H/2+1}" dominant-baseline="middle" text-anchor="${labelAnchor}" font-size="10" font-family="Sarabun,sans-serif" fill="${labelFill}" font-weight="700">${p2}%</text>`:''}
-    </svg>`;
-    return `<tr style="border-bottom:1px solid #ddd;">
-      <td style="padding:8px 10px;font-size:12px;width:28%;border-right:1px solid #ddd;">
-        <div style="font-weight:700;color:#1a3a5c;">สมรรถนะ ${c.id}</div>
-        <div style="color:#555;font-size:11px;margin-top:2px;">${c.name}</div>
-      </td>
-      <td style="padding:6px 10px;width:38%;border-right:1px solid #ddd;">${barHtml}</td>
-      <td style="padding:8px 6px;text-align:center;font-size:12px;font-weight:700;width:13%;border-right:1px solid #ddd;">${score}/${c.max}</td>
-      <td style="padding:8px 6px;text-align:center;font-size:12px;width:9%;border-right:1px solid #ddd;">${p2}%</td>
-      <td style="padding:8px 6px;text-align:center;width:12%;">${levelBadge(lv2.cls,lv2.label)}</td>
-    </tr>`;
+    const barHtml=`<svg width="${BAR_W}" height="${BAR_H}" viewBox="0 0 ${BAR_W} ${BAR_H}" style="display:block;max-width:100%;"><rect x="0" y="0" width="${BAR_W}" height="${BAR_H}" rx="3" fill="#ecf0f1"/>${filledW>0?`<rect x="0" y="0" width="${filledW}" height="${BAR_H}" rx="3" fill="${c.color}"/>`:''} ${p2>0?`<text x="${labelX}" y="${BAR_H/2+1}" dominant-baseline="middle" text-anchor="${labelAnchor}" font-size="9" font-family="Sarabun,sans-serif" fill="${labelFill}" font-weight="700">${p2}%</text>`:''}</svg>`;
+    return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;width:28%;border-right:1px solid #ddd;"><div style="font-weight:700;color:#1a3a5c;">ส${c.id}: ${c.name}</div></td><td style="padding:4px 8px;width:38%;border-right:1px solid #ddd;">${barHtml}</td><td style="padding:5px 5px;text-align:center;font-size:11px;font-weight:700;width:13%;border-right:1px solid #ddd;">${score}/${c.max}</td><td style="padding:5px 5px;text-align:center;font-size:11px;width:9%;border-right:1px solid #ddd;">${p2}%</td><td style="padding:5px 5px;text-align:center;width:12%;">${levelBadge(lv2.cls,lv2.label)}</td></tr>`;
   }).join('');
 
   // ตารางคะแนนรายข้อ
   const itemRows=COMP.map(c=>{
     const arr=s.scores['c'+c.id]||[0,0,0,0,0];
     const rowTotal=arr.reduce((a,b)=>a+b,0);
-    return `<tr style="border-bottom:1px solid #ddd;">
-      <td style="padding:7px 10px;font-size:12px;border-right:1px solid #ddd;">${c.short}</td>
-      ${arr.map(v=>`<td style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid #ddd;">${v}</td>`).join('')}
-      <td style="padding:7px 6px;text-align:center;font-size:12px;font-weight:700;">${rowTotal}</td>
-    </tr>`;
+    return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;border-right:1px solid #ddd;">${c.short}</td>${arr.map(v=>`<td style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid #ddd;">${v}</td>`).join('')}<td style="padding:5px 5px;text-align:center;font-size:11px;font-weight:700;">${rowTotal}</td></tr>`;
   }).join('');
 
   // ปีการศึกษาจาก room field (รูปแบบ "ห้อง / ปีการศึกษา" เช่น "1 / 2568")
@@ -1566,99 +1548,7 @@ function printReport(){
   const gradeRoom=school.grade?`${school.grade}/${roomNum}`:(school.room||'-');
   const termYear=`ประถมศึกษาปีที่ ${school.grade||''} ${roomNum?roomNum+'/':''} ${yearNum}`;
 
-  const content=`
-  <!-- หัวกระดาษ -->
-  <div style="text-align:center;margin-bottom:16px;padding-bottom:12px;">
-    ${logoHtml ? `<div style="margin-bottom:8px;">${logoHtml}</div>` : ''}
-    <div style="font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:4px;">รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน</div>
-    ${school.name?`<div style="font-size:13px;color:#333;margin-bottom:2px;">โรงเรียน${school.name}</div>`:''}
-    ${school.dept?`<div style="font-size:12px;color:#555;">${school.dept}</div>`:''}
-  </div>
-
-  <!-- ตารางข้อมูลนักเรียน -->
-  <table style="width:100%;border-collapse:collapse;margin-bottom:14px;border:1px solid #c8d8e8;">
-    <tr style="background:#e8f4fd;">
-      <td style="padding:8px 12px;font-size:11px;color:#5a6a7a;width:20%;border-right:1px solid #c8d8e8;border-bottom:1px solid #c8d8e8;">
-        <div style="font-weight:700;font-size:10px;margin-bottom:2px;">เลขที่</div>
-        <div style="font-size:13px;color:#1a2433;">${s.no}</div>
-      </td>
-      <td style="padding:8px 12px;font-size:11px;color:#5a6a7a;border-bottom:1px solid #c8d8e8;">
-        <div style="font-weight:700;font-size:10px;margin-bottom:2px;">เลขประจำตัว</div>
-        <div style="font-size:13px;color:#1a2433;">${s.id}</div>
-      </td>
-    </tr>
-    <tr style="background:#e8f4fd;">
-      <td colspan="2" style="padding:8px 12px;font-size:11px;color:#5a6a7a;border-bottom:1px solid #c8d8e8;">
-        <div style="font-weight:700;font-size:10px;margin-bottom:2px;">ชื่อ - สกุล</div>
-        <div style="font-size:13px;color:#1a2433;">${s.name}</div>
-      </td>
-    </tr>
-    <tr style="background:#e8f4fd;">
-      <td style="padding:8px 12px;font-size:11px;color:#5a6a7a;border-right:1px solid #c8d8e8;">
-        <div style="font-weight:700;font-size:10px;margin-bottom:2px;">ระดับชั้น</div>
-        <div style="font-size:13px;color:#1a2433;">${termYear}</div>
-      </td>
-      <td style="padding:8px 12px;font-size:11px;color:#5a6a7a;">
-        <div style="font-weight:700;font-size:10px;margin-bottom:2px;">ครูผู้ประเมิน</div>
-        <div style="font-size:13px;color:#1a2433;">${school.teacher||'-'}</div>
-      </td>
-    </tr>
-  </table>
-
-  <!-- แผนภูมิผลการประเมินแต่ละสมรรถนะ -->
-  <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:6px;">แผนภูมิผลการประเมินแต่ละสมรรถนะ</div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:0;border:1px solid #ddd;">
-    <thead>
-      <tr style="background:#1a3a5c;color:white;">
-        <th style="padding:8px 10px;text-align:left;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">สมรรถนะ</th>
-        <th style="padding:8px 10px;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">แผนภูมิ</th>
-        <th style="padding:8px 6px;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">คะแนน</th>
-        <th style="padding:8px 6px;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">%</th>
-        <th style="padding:8px 6px;font-size:12px;">ผล</th>
-      </tr>
-    </thead>
-    <tbody>${compRows}</tbody>
-  </table>
-
-  <!-- แถบคะแนนรวม -->
-  <table style="width:100%;border-collapse:collapse;margin-bottom:14px;background:#1a3a5c;">
-    <tr>
-      <td style="padding:12px 16px;">
-        <span style="font-size:13px;font-weight:700;color:white;">คะแนนรวมทั้งหมด</span>
-      </td>
-      <td style="padding:12px 16px;text-align:right;">
-        <span style="font-size:20px;font-weight:800;color:white;margin-right:10px;">${total}/${TOTAL_MAX}</span>
-        <span style="font-size:16px;font-weight:700;color:white;margin-right:10px;">${p}%</span>
-        ${levelBadge(lv.cls,lv.label)}
-        &nbsp;
-        <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${overallBg};color:${overallColor};">${overall}</span>
-      </td>
-    </tr>
-  </table>
-
-  <!-- คะแนนรายข้อ -->
-  <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:6px;">คะแนนรายข้อ</div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:28px;border:1px solid #ddd;">
-    <thead>
-      <tr style="background:#1a3a5c;color:white;">
-        <th style="padding:7px 10px;text-align:left;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">สมรรถนะ</th>
-        <th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 1</th>
-        <th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 2</th>
-        <th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 3</th>
-        <th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 4</th>
-        <th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 5</th>
-        <th style="padding:7px 6px;text-align:center;font-size:12px;">รวม</th>
-      </tr>
-    </thead>
-    <tbody>${itemRows}</tbody>
-  </table>
-
-  <!-- ลายเซ็น -->
-  <div style="text-align:center;font-size:13px;color:#333;line-height:2;margin-top:10px;">
-    <div>ลงชื่อ .............................................ผู้ประเมิน</div>
-    <div>(${school.teacher||'...................................'})</div>
-    <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
-  </div>`;
+  const content=buildStudentReportContent(s,school,logoHtml,compRows,itemRows,total,p,lv,overall,overallBg,overallColor,termYear,levelBadge);
 
   const school2=getSchoolData();
   const schoolStr=school2.name?` · โรงเรียน${school2.name}`:'';
@@ -1686,45 +1576,113 @@ function printAllReports(){
     }
     const compRows=cs.map(({c,score})=>{
       const p2=pct(score,c.max);const lv2=getLevel(p2);
-      const BAR_W=280,BAR_H=20,filledW=Math.round(BAR_W*p2/100);
+      const BAR_W=240,BAR_H=16,filledW=Math.round(BAR_W*p2/100);
       const labelX=filledW>30?filledW-4:filledW+4,labelAnchor=filledW>30?'end':'start',labelFill=filledW>30?'white':c.color;
-      const barHtml=`<svg width="${BAR_W}" height="${BAR_H}" viewBox="0 0 ${BAR_W} ${BAR_H}" style="display:block;max-width:100%;"><rect x="0" y="0" width="${BAR_W}" height="${BAR_H}" rx="3" fill="#ecf0f1"/>${filledW>0?`<rect x="0" y="0" width="${filledW}" height="${BAR_H}" rx="3" fill="${c.color}"/>`:''} ${p2>0?`<text x="${labelX}" y="${BAR_H/2+1}" dominant-baseline="middle" text-anchor="${labelAnchor}" font-size="10" font-family="Sarabun,sans-serif" fill="${labelFill}" font-weight="700">${p2}%</text>`:''}</svg>`;
-      return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:8px 10px;font-size:12px;width:28%;border-right:1px solid #ddd;"><div style="font-weight:700;color:#1a3a5c;">สมรรถนะ ${c.id}</div><div style="color:#555;font-size:11px;margin-top:2px;">${c.name}</div></td><td style="padding:6px 10px;width:38%;border-right:1px solid #ddd;">${barHtml}</td><td style="padding:8px 6px;text-align:center;font-size:12px;font-weight:700;width:13%;border-right:1px solid #ddd;">${score}/${c.max}</td><td style="padding:8px 6px;text-align:center;font-size:12px;width:9%;border-right:1px solid #ddd;">${p2}%</td><td style="padding:8px 6px;text-align:center;width:12%;">${levelBadge(lv2.cls,lv2.label)}</td></tr>`;
+      const barHtml=`<svg width="${BAR_W}" height="${BAR_H}" viewBox="0 0 ${BAR_W} ${BAR_H}" style="display:block;max-width:100%;"><rect x="0" y="0" width="${BAR_W}" height="${BAR_H}" rx="3" fill="#ecf0f1"/>${filledW>0?`<rect x="0" y="0" width="${filledW}" height="${BAR_H}" rx="3" fill="${c.color}"/>`:''} ${p2>0?`<text x="${labelX}" y="${BAR_H/2+1}" dominant-baseline="middle" text-anchor="${labelAnchor}" font-size="9" font-family="Sarabun,sans-serif" fill="${labelFill}" font-weight="700">${p2}%</text>`:''}</svg>`;
+      return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;width:28%;border-right:1px solid #ddd;"><div style="font-weight:700;color:#1a3a5c;">ส${c.id}: ${c.name}</div></td><td style="padding:4px 8px;width:38%;border-right:1px solid #ddd;">${barHtml}</td><td style="padding:5px 5px;text-align:center;font-size:11px;font-weight:700;width:13%;border-right:1px solid #ddd;">${score}/${c.max}</td><td style="padding:5px 5px;text-align:center;font-size:11px;width:9%;border-right:1px solid #ddd;">${p2}%</td><td style="padding:5px 5px;text-align:center;width:12%;">${levelBadge(lv2.cls,lv2.label)}</td></tr>`;
     }).join('');
     const itemRows=COMP.map(c=>{
       const arr=s.scores['c'+c.id]||[0,0,0,0,0],rowTotal=arr.reduce((a,b)=>a+b,0);
-      return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:7px 10px;font-size:12px;border-right:1px solid #ddd;">${c.short}</td>${arr.map(v=>`<td style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid #ddd;">${v}</td>`).join('')}<td style="padding:7px 6px;text-align:center;font-size:12px;font-weight:700;">${rowTotal}</td></tr>`;
+      return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;border-right:1px solid #ddd;">${c.short}</td>${arr.map(v=>`<td style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid #ddd;">${v}</td>`).join('')}<td style="padding:5px 5px;text-align:center;font-size:11px;font-weight:700;">${rowTotal}</td></tr>`;
     }).join('');
     const roomParts=(school.room||'').split('/');const roomNum=(roomParts[0]||'').trim();const yearNum=(roomParts[1]||'').trim()||'2568';
     const termYear=`ประถมศึกษาปีที่ ${school.grade||''} ${roomNum?roomNum+'/':''} ${yearNum}`;
-    const content=`
-  <div style="text-align:center;margin-bottom:16px;padding-bottom:12px;">${logoHtml?`<div style="margin-bottom:8px;">${logoHtml}</div>`:''}
-    <div style="font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:4px;">รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน</div>
-    ${school.name?`<div style="font-size:13px;color:#333;margin-bottom:2px;">โรงเรียน${school.name}</div>`:''}
-    ${school.dept?`<div style="font-size:12px;color:#555;">${school.dept}</div>`:''}
-  </div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:14px;border:1px solid #c8d8e8;">
-    <tr style="background:#e8f4fd;"><td style="padding:8px 12px;font-size:11px;color:#5a6a7a;width:20%;border-right:1px solid #c8d8e8;border-bottom:1px solid #c8d8e8;"><div style="font-weight:700;font-size:10px;margin-bottom:2px;">เลขที่</div><div style="font-size:13px;color:#1a2433;">${s.no}</div></td><td style="padding:8px 12px;font-size:11px;color:#5a6a7a;border-bottom:1px solid #c8d8e8;"><div style="font-weight:700;font-size:10px;margin-bottom:2px;">เลขประจำตัว</div><div style="font-size:13px;color:#1a2433;">${s.id}</div></td></tr>
-    <tr style="background:#e8f4fd;"><td colspan="2" style="padding:8px 12px;font-size:11px;color:#5a6a7a;border-bottom:1px solid #c8d8e8;"><div style="font-weight:700;font-size:10px;margin-bottom:2px;">ชื่อ - สกุล</div><div style="font-size:13px;color:#1a2433;">${s.name}</div></td></tr>
-    <tr style="background:#e8f4fd;"><td style="padding:8px 12px;font-size:11px;color:#5a6a7a;border-right:1px solid #c8d8e8;"><div style="font-weight:700;font-size:10px;margin-bottom:2px;">ระดับชั้น</div><div style="font-size:13px;color:#1a2433;">${termYear}</div></td><td style="padding:8px 12px;font-size:11px;color:#5a6a7a;"><div style="font-weight:700;font-size:10px;margin-bottom:2px;">ครูผู้ประเมิน</div><div style="font-size:13px;color:#1a2433;">${school.teacher||'-'}</div></td></tr>
-  </table>
-  <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:6px;">แผนภูมิผลการประเมินแต่ละสมรรถนะ</div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:0;border:1px solid #ddd;">
-    <thead><tr style="background:#1a3a5c;color:white;"><th style="padding:8px 10px;text-align:left;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">สมรรถนะ</th><th style="padding:8px 10px;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">แผนภูมิ</th><th style="padding:8px 6px;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">คะแนน</th><th style="padding:8px 6px;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">%</th><th style="padding:8px 6px;font-size:12px;">ผล</th></tr></thead>
-    <tbody>${compRows}</tbody>
-  </table>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:14px;background:#1a3a5c;">
-    <tr><td style="padding:12px 16px;"><span style="font-size:13px;font-weight:700;color:white;">คะแนนรวมทั้งหมด</span></td><td style="padding:12px 16px;text-align:right;"><span style="font-size:20px;font-weight:800;color:white;margin-right:10px;">${total}/${TOTAL_MAX}</span><span style="font-size:16px;font-weight:700;color:white;margin-right:10px;">${p}%</span>${levelBadge(lv.cls,lv.label)}&nbsp;<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${overallBg};color:${overallColor};">${overall}</span></td></tr>
-  </table>
-  <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:6px;">คะแนนรายข้อ</div>
-  <table style="width:100%;border-collapse:collapse;margin-bottom:28px;border:1px solid #ddd;">
-    <thead><tr style="background:#1a3a5c;color:white;"><th style="padding:7px 10px;text-align:left;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">สมรรถนะ</th><th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 1</th><th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 2</th><th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 3</th><th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 4</th><th style="padding:7px 6px;text-align:center;font-size:12px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 5</th><th style="padding:7px 6px;text-align:center;font-size:12px;">รวม</th></tr></thead>
-    <tbody>${itemRows}</tbody>
-  </table>
-  <div style="text-align:center;font-size:13px;color:#333;line-height:2;margin-top:10px;"><div>ลงชื่อ .............................................ผู้ประเมิน</div><div>(${school.teacher||'...................................'})</div><div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div></div>`;
+    const content=buildStudentReportContent(s,school,logoHtml,compRows,itemRows,total,p,lv,overall,overallBg,overallColor,termYear,levelBadge);
     return {content};
   });
   printReportHTML(pages,schoolStr);
+}
+
+// ===== SHARED REPORT CONTENT BUILDER =====
+function buildStudentReportContent(s,school,logoHtml,compRows,itemRows,total,p,lv,overall,overallBg,overallColor,termYear,levelBadge){
+  return `
+  <!-- หัวกระดาษ -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #1a3a5c;">
+    ${logoHtml?`<div style="flex-shrink:0;">${logoHtml}</div>`:''}
+    <div style="flex:1;text-align:center;">
+      <div style="font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:2px;">รายงานผลการประเมินสมรรถนะหลัก 6 ด้าน</div>
+      ${school.name?`<div style="font-size:12px;color:#333;">โรงเรียน${school.name}</div>`:''}
+      ${school.dept?`<div style="font-size:11px;color:#555;">${school.dept}</div>`:''}
+    </div>
+  </div>
+
+  <!-- ข้อมูลนักเรียน — แถวเดียว 4 ช่อง -->
+  <table style="width:100%;border-collapse:collapse;margin-bottom:10px;border:1px solid #c8d8e8;">
+    <tr style="background:#e8f4fd;">
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:10%;border-right:1px solid #c8d8e8;">
+        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">เลขที่</div>
+        <div style="font-size:13px;font-weight:700;color:#1a2433;">${s.no}</div>
+      </td>
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:18%;border-right:1px solid #c8d8e8;">
+        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">เลขประจำตัว</div>
+        <div style="font-size:13px;font-weight:700;color:#1a2433;">${s.id}</div>
+      </td>
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;border-right:1px solid #c8d8e8;">
+        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ชื่อ - สกุล</div>
+        <div style="font-size:13px;font-weight:700;color:#1a2433;">${s.name}</div>
+      </td>
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:22%;border-right:1px solid #c8d8e8;">
+        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ระดับชั้น</div>
+        <div style="font-size:12px;color:#1a2433;">${termYear}</div>
+      </td>
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:22%;">
+        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ครูผู้ประเมิน</div>
+        <div style="font-size:12px;color:#1a2433;">${school.teacher||'-'}</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- แผนภูมิผลการประเมินแต่ละสมรรถนะ -->
+  <div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:4px;">แผนภูมิผลการประเมินแต่ละสมรรถนะ</div>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:0;border:1px solid #ddd;">
+    <thead>
+      <tr style="background:#1a3a5c;color:white;">
+        <th style="padding:5px 8px;text-align:left;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">สมรรถนะ</th>
+        <th style="padding:5px 8px;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">แผนภูมิ</th>
+        <th style="padding:5px 5px;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">คะแนน</th>
+        <th style="padding:5px 5px;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">%</th>
+        <th style="padding:5px 5px;font-size:11px;">ผล</th>
+      </tr>
+    </thead>
+    <tbody>${compRows}</tbody>
+  </table>
+
+  <!-- แถบคะแนนรวม -->
+  <table style="width:100%;border-collapse:collapse;margin-bottom:10px;background:#1a3a5c;">
+    <tr>
+      <td style="padding:8px 12px;"><span style="font-size:12px;font-weight:700;color:white;">คะแนนรวมทั้งหมด</span></td>
+      <td style="padding:8px 12px;text-align:right;">
+        <span style="font-size:17px;font-weight:800;color:white;margin-right:8px;">${total}/${TOTAL_MAX}</span>
+        <span style="font-size:14px;font-weight:700;color:white;margin-right:8px;">${p}%</span>
+        ${levelBadge(lv.cls,lv.label)}&nbsp;
+        <span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:${overallBg};color:${overallColor};">${overall}</span>
+      </td>
+    </tr>
+  </table>
+
+  <!-- คะแนนรายข้อ -->
+  <div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:4px;">คะแนนรายข้อ</div>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:14px;border:1px solid #ddd;">
+    <thead>
+      <tr style="background:#1a3a5c;color:white;">
+        <th style="padding:5px 8px;text-align:left;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">สมรรถนะ</th>
+        <th style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 1</th>
+        <th style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 2</th>
+        <th style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 3</th>
+        <th style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 4</th>
+        <th style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid rgba(255,255,255,0.2);">ข้อ 5</th>
+        <th style="padding:5px 5px;text-align:center;font-size:11px;">รวม</th>
+      </tr>
+    </thead>
+    <tbody>${itemRows}</tbody>
+  </table>
+
+  <!-- ลายเซ็น -->
+  <div style="text-align:center;font-size:12px;color:#333;line-height:1.9;margin-top:8px;">
+    <div>ลงชื่อ .............................................ผู้ประเมิน</div>
+    <div>(${school.teacher||'...................................'})</div>
+    <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
+  </div>`;
 }
 
 function printReportHTML(pages,schoolStr){
