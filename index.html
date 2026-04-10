@@ -356,7 +356,7 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
 
       <!-- PAGE: รายงานรายบุคคล -->
       <div id="page-report" class="page">
-        <div class="card"><div class="field-label" style="margin-bottom:8px">เลือกนักเรียน</div><select class="native-select" id="report-select" onchange="renderReport()" style="margin-bottom:10px"></select><div class="btn-row" style="margin-bottom:0"><button class="btn btn-primary btn-sm" onclick="triggerPrint()" style="flex:1">🖨️ พิมพ์รายนี้</button><button class="btn btn-outline btn-sm" onclick="printAllReports()" style="flex:1">📄 พิมพ์ทั้งหมด</button><button class="btn btn-sm" onclick="exportAllPDF()" style="flex:1;background:#1a3a5c;color:white;" id="export-pdf-btn">📚 รวมเล่ม PDF</button></div></div>
+        <div class="card"><div class="field-label" style="margin-bottom:8px">เลือกนักเรียน</div><select class="native-select" id="report-select" onchange="renderReport()" style="margin-bottom:10px"></select><div class="btn-row" style="margin-bottom:0"><button class="btn btn-primary btn-sm" onclick="triggerPrint()" style="flex:1">🖨️ พิมพ์รายนี้</button><button class="btn btn-outline btn-sm" onclick="printAllReports()" style="flex:1">📄 พิมพ์ทั้งหมด</button></div></div>
         <div id="report-content"></div>
       </div>
 
@@ -2030,16 +2030,21 @@ async function generateBookPDF(){
   progressWrap.style.display='block';
   const setProgress=(p,label)=>{progressBar.style.width=p+'%';progressLabel.textContent=label;};
 
+  // iframe render container — visible แต่ซ่อนใต้ viewport
+  const iframe=document.createElement('iframe');
+  iframe.style.cssText='position:fixed;left:0;top:0;width:794px;height:1123px;opacity:0;pointer-events:none;z-index:-1;border:none;';
+  document.body.appendChild(iframe);
+
   try{
-    // โหลด html2pdf
+    // โหลด jsPDF + html2canvas
     setProgress(5,'⏳ โหลดไลบรารี...');
-    if(!window.html2pdf){
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-        s.onload=res;s.onerror=rej;document.head.appendChild(s);
-      });
-    }
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>window.jspdf);
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>window.html2canvas);
+
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+    const A4W=210, A4H=297;
+    let firstPage=true;
 
     const school=getSchoolData();
     const roomParts=(school.room||'').split('/');
@@ -2048,97 +2053,114 @@ async function generateBookPDF(){
     const schoolStr=school.name?` · โรงเรียน${school.name}`:'';
     const today=new Date();
     const thaiDate=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-    const footer=`<div style="margin-top:20px;padding-top:8px;border-top:1px solid #ddd;text-align:center;font-size:10px;color:#999;">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน${schoolStr}</div>`;
+    const footer=`<div style="margin-top:16px;padding-top:6px;border-top:1px solid #ddd;text-align:center;font-size:10px;color:#999;">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน${schoolStr}</div>`;
+
+    // ฟังก์ชัน render HTML → เพิ่มใน PDF
+    const addPageFromHTML=async(html)=>{
+      const iDoc=iframe.contentDocument||iframe.contentWindow.document;
+      iDoc.open();
+      iDoc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <style>
+          *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+          body{font-family:'Sarabun',sans-serif;font-size:13px;color:#1a2433;background:white;width:794px;padding:40px 51px;}
+          table{width:100%;border-collapse:collapse;}
+          img{max-width:100%;}
+        </style>
+      </head><body>${html}${footer}</body></html>`);
+      iDoc.close();
+      // รอ font โหลด
+      await new Promise(r=>setTimeout(r,600));
+      const canvas=await html2canvas(iDoc.body,{scale:2,useCORS:true,allowTaint:true,logging:false,backgroundColor:'#ffffff',width:794,windowWidth:794});
+      const imgData=canvas.toDataURL('image/jpeg',0.95);
+      const imgH=(canvas.height/canvas.width)*A4W;
+      if(!firstPage)pdf.addPage();
+      firstPage=false;
+      // ถ้าสูงกว่า A4 ให้ scale ลง
+      if(imgH<=A4H){
+        pdf.addImage(imgData,'JPEG',0,0,A4W,imgH);
+      } else {
+        pdf.addImage(imgData,'JPEG',0,0,A4W,A4H);
+      }
+    };
 
     const logoHtml4Cover=schoolLogo?`<img src="${schoolLogo}" style="width:64px;height:64px;object-fit:cover;border-radius:50%;border:3px solid rgba(255,255,255,0.4);">`:'';
     const chartSVG=buildCoverChartSVG(true);
     const legendHtml=COMP.map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;margin-right:8px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c.color};"></span>ส${c.id}: ${c.short}</span>`).join('');
 
-    // สร้าง wrap
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:210mm;background:white;font-family:Sarabun,sans-serif;font-size:13px;color:#1a2433;box-sizing:border-box;';
-    document.body.appendChild(wrap);
-
-    let pageCount=0;
-    const addPage=(html,isLast=false)=>{
-      const d=document.createElement('div');
-      d.style.cssText=`padding:15mm;${isLast?'':'page-break-after:always;'}page-break-inside:avoid;`;
-      d.innerHTML=html+footer;
-      wrap.appendChild(d);
-      pageCount++;
-    };
-
-    // 1. หน้าปก
-    if(wantCover){setProgress(15,'📋 สร้างหน้าปก...');addPage(buildBookCoverHTML(school,logoHtml4Cover,chartSVG,legendHtml,'','',thaiDate,schoolStr));}
-
-    // 2. รายชื่อนักเรียน
-    if(wantData){setProgress(25,'📁 สร้างหน้าข้อมูล...');addPage(buildBookDataHTML(school));}
-
-    // 3. คะแนนรายสมรรถนะ (6 หน้า)
-    if(wantScores){
-      setProgress(35,'✏️ สร้างหน้าคะแนน...');
-      const scorePages=buildBookScoresHTML(school);
-      scorePages.forEach(html=>addPage(html));
-    }
-
-    // 4. รายงานรายบุคคล
+    // รวมรายการหน้าทั้งหมด
+    const pages=[];
+    if(wantCover) pages.push({label:'📋 หน้าปก',fn:()=>buildBookCoverHTML(school,logoHtml4Cover,chartSVG,legendHtml,'','',thaiDate,schoolStr)});
+    if(wantData)  pages.push({label:'📁 รายชื่อนักเรียน',fn:()=>buildBookDataHTML(school)});
+    if(wantScores) buildBookScoresHTML(school).forEach((h,i)=>pages.push({label:`✏️ คะแนนสมรรถนะที่ ${i+1}`,fn:()=>h}));
     if(wantIndividual){
-      function levelBadge(cls,label){
+      const lvBadgeFn=(cls,label)=>{
         const bg={above:'#d5f5e3',capable:'#d6eaf8',developing:'#fef9e7',beginning:'#fadbd8'};
         const col={above:'#1e8449',capable:'#1a5276',developing:'#7d6608',beginning:'#922b21'};
         return `<span style="display:inline-block;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:${bg[cls]||'#eee'};color:${col[cls]||'#333'};white-space:nowrap;">${label}</span>`;
-      }
+      };
       const logoHtml=schoolLogo?`<img src="${schoolLogo}" style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:3px solid #e8f4fd;">`:'';
-      students.forEach((s,si)=>{
-        setProgress(35+Math.round(si/students.length*30),`📄 รายบุคคล ${si+1}/${students.length}...`);
-        const cs=COMP.map(c=>({c,score:getCS(s,c.id)}));
-        const total=cs.reduce((sum,x)=>sum+x.score,0),p2=pct(total,TOTAL_MAX),lv=getLevel(p2);
-        const overall=p2>=60?'ผ่าน':'ไม่ผ่าน',overallColor=p2>=60?'#1e8449':'#922b21',overallBg=p2>=60?'#d5f5e3':'#fadbd8';
-        const compRows=cs.map(({c,score})=>{
-          const p3=pct(score,c.max),lv3=getLevel(p3),BAR_W=240,BAR_H=16,filledW=Math.round(BAR_W*p3/100);
-          const labelX=filledW>30?filledW-4:filledW+4,labelAnchor=filledW>30?'end':'start',labelFill=filledW>30?'white':c.color;
-          const barHtml=`<svg width="${BAR_W}" height="${BAR_H}" viewBox="0 0 ${BAR_W} ${BAR_H}" style="display:block;max-width:100%;"><rect x="0" y="0" width="${BAR_W}" height="${BAR_H}" rx="3" fill="#ecf0f1"/>${filledW>0?`<rect x="0" y="0" width="${filledW}" height="${BAR_H}" rx="3" fill="${c.color}"/>`:''} ${p3>0?`<text x="${labelX}" y="${BAR_H/2+1}" dominant-baseline="middle" text-anchor="${labelAnchor}" font-size="9" font-family="Sarabun,sans-serif" fill="${labelFill}" font-weight="700">${p3}%</text>`:''}</svg>`;
-          return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;width:28%;border-right:1px solid #ddd;"><div style="font-weight:700;color:#1a3a5c;">ส${c.id}: ${c.name}</div></td><td style="padding:4px 8px;width:38%;border-right:1px solid #ddd;">${barHtml}</td><td style="padding:5px 5px;text-align:center;font-size:11px;font-weight:700;width:13%;border-right:1px solid #ddd;">${score}/${c.max}</td><td style="padding:5px 5px;text-align:center;font-size:11px;width:9%;border-right:1px solid #ddd;">${p3}%</td><td style="padding:5px 5px;text-align:center;width:12%;">${levelBadge(lv3.cls,lv3.label)}</td></tr>`;
-        }).join('');
-        const itemRows=COMP.map(c=>{const arr=s.scores['c'+c.id]||[0,0,0,0,0],rowTotal=arr.reduce((a,b)=>a+b,0);return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;border-right:1px solid #ddd;">${c.short}</td>${arr.map(v=>`<td style="padding:5px 5px;text-align:center;font-size:11px;border-right:1px solid #ddd;">${v}</td>`).join('')}<td style="padding:5px 5px;text-align:center;font-size:11px;font-weight:700;">${rowTotal}</td></tr>`;}).join('');
-        const termYear=`ประถมศึกษาปีที่ ${school.grade||''} ${roomNum?roomNum+'/':''} ${yearNum}`;
-        addPage(buildStudentReportContent(s,school,logoHtml,compRows,itemRows,total,p2,lv,overall,overallBg,overallColor,termYear,levelBadge));
+      students.forEach(s=>{
+        pages.push({label:`📄 รายบุคคล: ${s.name}`,fn:()=>{
+          const cs=COMP.map(c=>({c,score:getCS(s,c.id)}));
+          const total=cs.reduce((sum,x)=>sum+x.score,0),p2=pct(total,TOTAL_MAX),lv=getLevel(p2);
+          const overall=p2>=60?'ผ่าน':'ไม่ผ่าน',overallColor=p2>=60?'#1e8449':'#922b21',overallBg=p2>=60?'#d5f5e3':'#fadbd8';
+          const compRows=cs.map(({c,score})=>{
+            const p3=pct(score,c.max),lv3=getLevel(p3),BAR_W=240,BAR_H=16,filledW=Math.round(BAR_W*p3/100);
+            const lx=filledW>30?filledW-4:filledW+4,la=filledW>30?'end':'start',lf=filledW>30?'white':c.color;
+            const bar=`<svg width="${BAR_W}" height="${BAR_H}" viewBox="0 0 ${BAR_W} ${BAR_H}" style="display:block;"><rect x="0" y="0" width="${BAR_W}" height="${BAR_H}" rx="3" fill="#ecf0f1"/>${filledW>0?`<rect x="0" y="0" width="${filledW}" height="${BAR_H}" rx="3" fill="${c.color}"/>`:''}${p3>0?`<text x="${lx}" y="${BAR_H/2+1}" dominant-baseline="middle" text-anchor="${la}" font-size="9" font-family="Sarabun,sans-serif" fill="${lf}" font-weight="700">${p3}%</text>`:''}</svg>`;
+            return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;width:28%;border-right:1px solid #ddd;font-weight:700;color:#1a3a5c;">ส${c.id}: ${c.name}</td><td style="padding:4px 8px;width:38%;border-right:1px solid #ddd;">${bar}</td><td style="padding:5px;text-align:center;font-size:11px;font-weight:700;width:13%;border-right:1px solid #ddd;">${score}/${c.max}</td><td style="padding:5px;text-align:center;font-size:11px;width:9%;border-right:1px solid #ddd;">${p3}%</td><td style="padding:5px;text-align:center;width:12%;">${lvBadgeFn(lv3.cls,lv3.label)}</td></tr>`;
+          }).join('');
+          const itemRows=COMP.map(c=>{const arr=s.scores['c'+c.id]||[0,0,0,0,0],rt=arr.reduce((a,b)=>a+b,0);return `<tr style="border-bottom:1px solid #ddd;"><td style="padding:5px 8px;font-size:11px;border-right:1px solid #ddd;">${c.short}</td>${arr.map(v=>`<td style="padding:5px;text-align:center;font-size:11px;border-right:1px solid #ddd;">${v}</td>`).join('')}<td style="padding:5px;text-align:center;font-size:11px;font-weight:700;">${rt}</td></tr>`;}).join('');
+          const termYear=`ประถมศึกษาปีที่ ${school.grade||''} ${roomNum?roomNum+'/':''} ${yearNum}`;
+          return buildStudentReportContent(s,school,logoHtml,compRows,itemRows,total,p2,lv,overall,overallBg,overallColor,termYear,lvBadgeFn);
+        }});
       });
     }
+    if(wantSummary)     pages.push({label:'📊 สรุปผล',fn:()=>buildBookSummaryHTML(school)});
+    if(wantGroup)       pages.push({label:'📈 รายงานรวม',fn:()=>buildBookGroupReportHTML(school)});
 
-    // 5. สรุปผล
-    if(wantSummary){setProgress(70,'📊 สร้างหน้าสรุปผล...');addPage(buildBookSummaryHTML(school));}
+    // Render ทีละหน้า
+    for(let i=0;i<pages.length;i++){
+      const pg=pages[i];
+      setProgress(10+Math.round(i/pages.length*80),pg.label+'...');
+      await addPageFromHTML(pg.fn());
+    }
 
-    // 6. รายงานรวม
-    if(wantGroup){setProgress(80,'📈 สร้างหน้ารายงานรวม...');addPage(buildBookGroupReportHTML(school),true);}
-
-    setProgress(88,'📄 กำลังแปลงเป็น PDF...');
-
+    setProgress(92,'📄 สร้างไฟล์ PDF...');
     const fileName=`รวมเล่มสมรรถนะ${school.grade?'_'+school.grade:''}${roomNum?'_ห้อง'+roomNum:''}_${yearNum}.pdf`;
-    const opt={margin:0,filename:fileName,image:{type:'jpeg',quality:0.95},html2canvas:{scale:2,useCORS:true,logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
+
+    document.body.removeChild(iframe);
 
     if(destDrive){
-      // บันทึกลง Google Drive
-      setProgress(90,'☁️ กำลังอัปโหลดขึ้น Drive...');
-      const pdfBlob=await html2pdf().set(opt).from(wrap).outputPdf('blob');
-      document.body.removeChild(wrap);
+      setProgress(95,'☁️ อัปโหลดขึ้น Drive...');
+      const pdfBlob=pdf.output('blob');
       await uploadPDFtoDrive(pdfBlob,fileName,setProgress);
     } else {
-      // บันทึกลงเครื่อง
-      await html2pdf().set(opt).from(wrap).save();
-      document.body.removeChild(wrap);
+      pdf.save(fileName);
       setProgress(100,'✅ บันทึกสำเร็จ!');
       showToast('✅ บันทึก PDF สำเร็จ: '+fileName);
     }
 
-    setTimeout(()=>{progressWrap.style.display='none';closeModal('book-modal');},1500);
+    setTimeout(()=>{progressWrap.style.display='none';closeModal('book-modal');},1800);
   }catch(e){
     console.error(e);
+    if(document.body.contains(iframe))document.body.removeChild(iframe);
     showToast('❌ สร้าง PDF ไม่สำเร็จ: '+e.message);
     progressWrap.style.display='none';
   }finally{
     btn.disabled=false;
   }
+}
+
+// โหลด script ครั้งเดียว
+function loadScript(src,check){
+  return new Promise((res,rej)=>{
+    if(check&&check()){res();return;}
+    const s=document.createElement('script');
+    s.src=src;s.onload=()=>setTimeout(res,100);s.onerror=rej;
+    document.head.appendChild(s);
+  });
 }
 
 // ===== อัปโหลด PDF ขึ้น Google Drive =====
