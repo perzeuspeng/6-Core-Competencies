@@ -199,7 +199,34 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
 .install-text{flex:1;font-size:13px;}
 .install-text strong{display:block;font-size:14px;margin-bottom:2px;}
 
-@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}#login-screen,#loading-overlay,.bottom-nav,.topbar,.status-bar,#license-bar{display:none!important;}body{overflow:auto;}.scroll-area{position:static;overflow:visible;padding:0;}.scroll-content{padding:0;}.cover-sign-box{padding:20px 16px 28px!important;}.cover-sign-line{height:60px!important;margin:0 8px 10px!important;border-bottom:1.5px dashed #aaa!important;}.cover-sign-role{margin-top:4px!important;font-size:12px!important;}.cover-sign-name{font-size:13px!important;margin-top:6px!important;}.cover-sign-pos{font-size:12px!important;margin-top:4px!important;}.cover-sign-row{gap:20px!important;margin-top:24px!important;}}
+/* PRINT SIGNATURE SECTION (hidden on screen) */
+.print-sign-section{display:none;}
+
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  #login-screen,#loading-overlay,.bottom-nav,.topbar,.status-bar,#license-bar{display:none!important;}
+  body{overflow:auto;}
+  .scroll-area{position:static;overflow:visible;padding:0;}
+  .scroll-content{padding:0;}
+  /* force page-data to show always when printing */
+  #page-data{display:block!important;}
+  #page-scores,#page-cover,#page-summary,#page-report,#page-groupreport{display:none!important;}
+  #install-banner-wrap,#drive-status-bar,.license-card,.btn,.btn-row,#unsaved-bar{display:none!important;}
+  .print-sign-section{display:block!important;margin:32px 0 20px;}
+  .print-sign-row{display:grid;grid-template-columns:1fr 1fr;gap:32px;}
+  .print-sign-box{text-align:center;padding:20px 16px 28px;border:1px solid #dde3ea;border-radius:10px;}
+  .print-sign-label{font-size:13px;font-weight:700;color:#1a2433;margin-bottom:10px;}
+  .print-sign-space{height:70px;}
+  .print-sign-line{border-bottom:1.5px dashed #888;margin:0 12px 10px;}
+  .print-sign-name{font-size:13px;font-weight:700;color:#1a2433;margin-top:6px;}
+  .print-sign-pos{font-size:12px;color:#5a6a7a;margin-top:4px;}
+  .cover-sign-box{padding:20px 16px 28px!important;}
+  .cover-sign-line{height:60px!important;margin:0 8px 10px!important;border-bottom:1.5px dashed #aaa!important;}
+  .cover-sign-role{margin-top:4px!important;font-size:12px!important;}
+  .cover-sign-name{font-size:13px!important;margin-top:6px!important;}
+  .cover-sign-pos{font-size:12px!important;margin-top:4px!important;}
+  .cover-sign-row{gap:20px!important;margin-top:24px!important;}
+}
 
 /* COVER PAGE */
 .cover-wrap{background:white;border-radius:14px;padding:0;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,0.06);overflow:hidden;}
@@ -318,6 +345,26 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
           <button class="btn btn-success btn-full" style="margin-top:12px" onclick="confirmSaveSchoolData()">
             ✅ ยืนยันและบันทึกข้อมูลโรงเรียน
           </button>
+        </div>
+
+        <!-- PRINT-ONLY SIGNATURE BLOCK -->
+        <div class="print-sign-section">
+          <div class="print-sign-row">
+            <div class="print-sign-box">
+              <div class="print-sign-label">ลงชื่อผู้ประเมิน</div>
+              <div class="print-sign-space"></div>
+              <div class="print-sign-line"></div>
+              <div class="print-sign-name" id="print-sign-teacher"></div>
+              <div class="print-sign-pos" id="print-sign-teacher-pos"></div>
+            </div>
+            <div class="print-sign-box">
+              <div class="print-sign-label">ลงชื่อผู้อนุมัติ</div>
+              <div class="print-sign-space"></div>
+              <div class="print-sign-line"></div>
+              <div class="print-sign-name" id="print-sign-director"></div>
+              <div class="print-sign-pos">ผู้อำนวยการโรงเรียน</div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -2230,6 +2277,14 @@ function updateDynamicSchoolName(){
   if(sub&&currentPage==='data'&&school.name){
     sub.textContent=`โรงเรียน${school.name}`;
   }
+
+  // Print signature names (data tab)
+  const pst=document.getElementById('print-sign-teacher');
+  if(pst)pst.textContent=school.teacher||'';
+  const pstp=document.getElementById('print-sign-teacher-pos');
+  if(pstp)pstp.textContent=school.teacherPos||'';
+  const psd=document.getElementById('print-sign-director');
+  if(psd)psd.textContent=school.director?(school.director):'';
 }
 
 // ===== UNSAVED INDICATOR + CONFIRM SAVE =====
