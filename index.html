@@ -952,8 +952,8 @@ function buildCoverChartSVG(forPrint){
     if(!students.length)return 0;
     return Math.round(students.reduce((sum,s)=>sum+getCS(s,c.id),0)/students.length*10)/10;
   });
-  const W=forPrint?560:320, H=forPrint?220:155;
-  const PAD_L=forPrint?36:20,PAD_R=forPrint?16:10,PAD_T=forPrint?34:24,PAD_B=forPrint?56:44;
+  const W=forPrint?460:320, H=forPrint?190:155;
+  const PAD_L=forPrint?30:20,PAD_R=forPrint?30:10,PAD_T=forPrint?30:24,PAD_B=forPrint?50:44;
   const n=COMP.length;
   const barW=Math.floor((W-PAD_L-PAD_R)/n*0.55);
   const gap=(W-PAD_L-PAD_R-barW*n)/(n+1);
@@ -986,7 +986,7 @@ function buildCoverChartSVG(forPrint){
     grid+=`<text x="${PAD_L-4}" y="${gy}" text-anchor="end" dominant-baseline="middle" font-size="${forPrint?8:7}" fill="#aaa" font-family="Sarabun,sans-serif">${v}</text>`;
   });
 
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;max-width:100%;margin:0 auto;">${grid}${bars}</svg>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;max-width:${W}px;margin:0 auto;">${grid}${bars}</svg>`;
 }
 
 function renderCover(){
@@ -1117,7 +1117,7 @@ function printCoverPage(){
     .info-table td{padding:5px 8px;background:#e8f4fd;border:3px solid white;border-radius:6px;}
     .info-label{font-size:8px;color:#5a6a7a;display:block;margin-bottom:1px;font-weight:600;}
     .info-val{font-size:12px;font-weight:700;color:#1a2433;}
-    .chart-section{margin-bottom:10px;text-align:center;}
+    .chart-section{margin-bottom:10px;}
     .chart-title{font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:6px;border-left:4px solid #f0a500;padding-left:8px;}
     .sign-section{display:table;width:100%;margin-top:10px;}
     .sign-box{display:table-cell;width:50%;padding:8px 10px;text-align:center;background:#f5f7fa;border-radius:10px;}
@@ -1206,14 +1206,14 @@ function printCoverPage(){
     <table style="width:100%;border-collapse:separate;border-spacing:6px;margin-top:8px;">
       <tr>
         <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 10px;text-align:center;vertical-align:top;">
-          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:16px;">ลงชื่อผู้ประเมิน</div>
+          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:40px;">ลงชื่อผู้ประเมิน</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
           <div style="font-size:12px;font-weight:700;">(${school.teacher||'...................................'})</div>
           <div style="font-size:11px;color:#666;margin-top:3px;">${school.teacherPos||'ผู้ประเมิน'}</div>
           <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ ${thaiDate}</div>
         </td>
         <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 10px;text-align:center;vertical-align:top;">
-          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:16px;">ลงชื่อผู้อนุมัติ</div>
+          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:40px;">ลงชื่อผู้อนุมัติ</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
           <div style="font-size:12px;font-weight:700;">(${school.director||'...................................'})</div>
           <div style="font-size:11px;color:#666;margin-top:3px;">ผู้อำนวยการโรงเรียน${school.name?school.name:''}</div>
@@ -1857,7 +1857,7 @@ function buildBookCoverHTML(school,logoHtml,chartSVG,legendHtml,statsRow,thaiDat
       </table>
     </div>
     <div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:6px;border-left:4px solid #f0a500;padding-left:8px;">กราฟค่าเฉลี่ยสมรรถนะ 6 ด้าน (ร้อยละ)</div>
-    <div style="width:100%;text-align:center;overflow:visible;">${chartSVG}</div>
+    <div style="overflow:visible;">${chartSVG}</div>
     <div style="margin-top:6px;line-height:1.8">${legendHtml}</div>
     <table style="width:100%;border-collapse:separate;border-spacing:6px;margin-top:10px;">
       <tr>
