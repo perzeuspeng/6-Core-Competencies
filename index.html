@@ -310,8 +310,6 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
           </div>
           <div class="field-group"><div class="field-label">ครูผู้ประเมิน</div><input class="field-input" id="f-teacher" placeholder="กรอกชื่อครูผู้ประเมิน" oninput="markUnsaved()"></div>
           <div class="field-group"><div class="field-label">ตำแหน่ง</div><input class="field-input" id="f-teacher-pos" placeholder="เช่น ครู คศ.1, พนักงานราชการ" oninput="markUnsaved()"></div>
-          <div class="field-group"><div class="field-label">ลงชื่อ (ลายเซ็น / ชื่อผู้ลงนาม)</div><input class="field-input" id="f-signature" placeholder="กรอกชื่อผู้ลงนาม (ถ้าต่างจากครูผู้ประเมิน)" oninput="markUnsaved()"></div>
-          <div class="field-group"><div class="field-label">วันที่ลงนาม</div><input class="field-input" id="f-sign-date" type="date" oninput="markUnsaved()"></div>
 
           <!-- CONFIRM SAVE BUTTON -->
           <div id="unsaved-bar" style="display:none;margin-top:8px;padding:10px 14px;background:#fff8e1;border:1.5px solid #f0a500;border-radius:10px;display:none;align-items:center;gap:10px">
@@ -756,7 +754,7 @@ function buildSaveData(){return{students,schoolLogo,school:getSchoolData(),saved
 function resetAppData(){
   students=[];
   schoolLogo='';
-  const fields=['f-school','f-dept','f-director','f-grade','f-room','f-teacher','f-teacher-pos','f-signature','f-sign-date'];
+  const fields=['f-school','f-dept','f-director','f-grade','f-room','f-teacher','f-teacher-pos'];
   fields.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   hasUnsavedSchool=false;
   const bar=document.getElementById('unsaved-bar');if(bar)bar.style.display='none';
@@ -803,8 +801,6 @@ function applyLoadedData(d){
       document.getElementById('f-room').value=s.room||'';
       document.getElementById('f-teacher').value=s.teacher||'';
       document.getElementById('f-teacher-pos').value=s.teacherPos||'';
-      const sigEl=document.getElementById('f-signature');if(sigEl)sigEl.value=s.signature||'';
-      const sdEl=document.getElementById('f-sign-date');if(sdEl)sdEl.value=s.signDate||'';
       hasUnsavedSchool=false;
       const bar=document.getElementById('unsaved-bar');
       if(bar)bar.style.display='none';
@@ -827,7 +823,7 @@ function loadFromLocal(){
 }
 
 function getSchoolData(){
-  return{name:document.getElementById('f-school')?.value||'',dept:document.getElementById('f-dept')?.value||'',director:document.getElementById('f-director')?.value||'',grade:document.getElementById('f-grade')?.value||'',room:document.getElementById('f-room')?.value||'',teacher:document.getElementById('f-teacher')?.value||'',teacherPos:document.getElementById('f-teacher-pos')?.value||'',signature:document.getElementById('f-signature')?.value||'',signDate:document.getElementById('f-sign-date')?.value||''};
+  return{name:document.getElementById('f-school')?.value||'',dept:document.getElementById('f-dept')?.value||'',director:document.getElementById('f-director')?.value||'',grade:document.getElementById('f-grade')?.value||'',room:document.getElementById('f-room')?.value||'',teacher:document.getElementById('f-teacher')?.value||'',teacherPos:document.getElementById('f-teacher-pos')?.value||''};
 }
 
 // Auto-sync: debounce after data change + periodic interval
@@ -1007,7 +1003,7 @@ function renderCover(){
 
   const chartSVG=buildCoverChartSVG(false);
   const today=new Date();
-  const thaiDate=school.signDate ? new Date(school.signDate).toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"}) : today.toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"});
+  const thaiDate=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
 
   document.getElementById('cover-content').innerHTML=`
   <div class="cover-wrap">
@@ -1063,7 +1059,7 @@ function renderCover(){
 function printCoverPage(){
   const school=getSchoolData();
   const today=new Date();
-  const thaiDate=school.signDate ? new Date(school.signDate).toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"}) : today.toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"});
+  const thaiDate=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
 
   // กราฟ SVG แนวตั้ง ขนาดใหญ่สำหรับพิมพ์
   const chartSVG=buildCoverChartSVG(true);
@@ -1237,7 +1233,7 @@ function printCoverPage(){
 function printGroupReport(){
   const school=getSchoolData();
   const today=new Date();
-  const thaiDate=school.signDate ? new Date(school.signDate).toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"}) : today.toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"});
+  const thaiDate=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
   const schoolStr=school.name?` · โรงเรียน${school.name}`:'';
 
   const lvLabels=['เริ่มต้น','กำลังพัฒนา','สามารถ','เหนือความคาดหวัง'];
@@ -1868,7 +1864,7 @@ function buildBookCoverHTML(school,logoHtml,chartSVG,legendHtml,statsRow,thaiDat
         <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px;text-align:center;vertical-align:top;">
           <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:40px;">ลงชื่อผู้ประเมิน</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 10px 6px;"></div>
-          <div style="font-size:12px;font-weight:700;">(${school.signature||school.teacher||'...................................'})</div>
+          <div style="font-size:12px;font-weight:700;">(${school.teacher||'...................................'})</div>
           <div style="font-size:11px;color:#666;">${school.teacherPos||'ผู้ประเมิน'}</div>
           <div style="font-size:9px;color:#888;margin-top:4px;">วันที่ ${thaiDate}</div>
         </td>
@@ -1899,9 +1895,8 @@ function buildBookDataHTML(school){
   </table>
   <div style="text-align:center;font-size:13px;color:#333;line-height:2;margin-top:28px;">
     <div>ลงชื่อ .............................................ผู้ประเมิน</div>
-    <div>(${school.signature||school.teacher||'...................................'})</div>
+    <div>(${school.teacher||'...................................'})</div>
     <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
-    <div style="font-size:11px;color:#666;">วันที่ ${school.signDate ? new Date(school.signDate).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}) : '......./......./.......'}</div>
   </div>`;
 }
 
@@ -1927,7 +1922,7 @@ function buildBookScoresHTML(school){
       <thead><tr style="background:#1a3a5c;color:white;"><th style="padding:6px;">ที่</th><th style="padding:6px;text-align:left;">ชื่อ - สกุล</th>${c.ind.map((_,i)=>`<th style="padding:6px;">ข้อ ${i+1}</th>`).join('')}<th style="padding:6px;">รวม</th><th style="padding:6px;">%</th><th style="padding:6px;">ผล</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div style="text-align:center;font-size:12px;color:#333;line-height:2;margin-top:20px;"><div>ลงชื่อ .............................................ผู้ประเมิน</div><div>(${school.signature||school.teacher||'...................................'})</div><div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div><div style="font-size:11px;color:#666;">วันที่ ${school.signDate ? new Date(school.signDate).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}) : '......./......./.......'}</div></div>`;
+    <div style="text-align:center;font-size:12px;color:#333;line-height:2;margin-top:20px;"><div>ลงชื่อ .............................................ผู้ประเมิน</div><div>(${school.teacher||'...................................'})</div><div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div></div>`;
   });
 }
 
@@ -2057,7 +2052,7 @@ async function generateBookPDF(){
     const yearNum=(roomParts[1]||'').trim()||'2568';
     const schoolStr=school.name?` · โรงเรียน${school.name}`:'';
     const today=new Date();
-    const signDateRaw=school.signDate||""; const thaiDate=signDateRaw ? new Date(signDateRaw).toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"}) : today.toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric"});
+    const thaiDate=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
     const footer=`<div style="margin-top:16px;padding-top:6px;border-top:1px solid #ddd;text-align:center;font-size:10px;color:#999;">© สงวนลิขสิทธิ์ พ.ศ. 2568 &nbsp;|&nbsp; <strong>Pakorn Manchit</strong> &nbsp;|&nbsp; ระบบประเมินสมรรถนะหลัก 6 ด้าน${schoolStr}</div>`;
 
     // ฟังก์ชัน render HTML → เพิ่มใน PDF
