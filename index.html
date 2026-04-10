@@ -1436,7 +1436,28 @@ function triggerPrint(){
   if(currentPage==='groupreport'){printGroupReport();return;}
   if(currentPage==='data'){
     const rows=students.map(s=>`<tr><td>${s.no}</td><td>${s.id}</td><td>${s.name}</td></tr>`).join('');
-    printHTML(hdr+`<h2>รายชื่อนักเรียน</h2><p>โรงเรียน${school.name} · ${school.grade}/${school.room} · ปีการศึกษา 2568</p></div><table border="1" cellpadding="8" style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a3a5c;color:white"><th>ที่</th><th>เลขประจำตัว</th><th>ชื่อ - สกุล</th></tr></thead><tbody>${rows}</tbody></table>`);
+    const today=new Date();
+    const thaiDate=today.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+    const signSection=`
+      <table style="width:100%;border-collapse:separate;border-spacing:10px;margin-top:24px;">
+        <tr>
+          <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:12px 10px;text-align:center;vertical-align:top;">
+            <div style="font-size:11px;font-weight:700;color:#5a6a7a;margin-bottom:48px;">ลงชื่อผู้ประเมิน</div>
+            <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
+            <div style="font-size:12px;font-weight:700;">(${school.teacher||'...................................'})</div>
+            <div style="font-size:11px;color:#666;margin-top:3px;">${school.teacherPos||'ผู้ประเมิน'}</div>
+            <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ ${thaiDate}</div>
+          </td>
+          <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:12px 10px;text-align:center;vertical-align:top;">
+            <div style="font-size:11px;font-weight:700;color:#5a6a7a;margin-bottom:48px;">ลงชื่อผู้อนุมัติ</div>
+            <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
+            <div style="font-size:12px;font-weight:700;">(${school.director||'...................................'})</div>
+            <div style="font-size:11px;color:#666;margin-top:3px;">ผู้อำนวยการโรงเรียน${school.name||''}</div>
+            <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ ${thaiDate}</div>
+          </td>
+        </tr>
+      </table>`;
+    printHTML(hdr+`<h2>รายชื่อนักเรียน</h2><p>โรงเรียน${school.name} · ${school.grade}/${school.room} · ปีการศึกษา 2568</p></div><table border="1" cellpadding="8" style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a3a5c;color:white"><th>ที่</th><th>เลขประจำตัว</th><th>ชื่อ - สกุล</th></tr></thead><tbody>${rows}</tbody></table>${signSection}`);
   } else if(currentPage==='scores'){
     const c=COMP.find(x=>x.id===currentComp);
     // ตารางรายละเอียดตัวชี้วัด
