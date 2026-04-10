@@ -1606,28 +1606,34 @@ function buildStudentReportContent(s,school,logoHtml,compRows,itemRows,total,p,l
     </div>
   </div>
 
-  <!-- ข้อมูลนักเรียน — แถวเดียว 4 ช่อง -->
+  <!-- ข้อมูลนักเรียน — แถว 1: เลขที่ เลขประจำตัว ชื่อสกุล | แถว 2: ระดับชั้น ห้อง ปีการศึกษา -->
   <table style="width:100%;border-collapse:collapse;margin-bottom:10px;border:1px solid #c8d8e8;">
     <tr style="background:#e8f4fd;">
       <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:10%;border-right:1px solid #c8d8e8;">
         <div style="font-weight:700;font-size:9px;margin-bottom:1px;">เลขที่</div>
         <div style="font-size:13px;font-weight:700;color:#1a2433;">${s.no}</div>
       </td>
-      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:18%;border-right:1px solid #c8d8e8;">
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:20%;border-right:1px solid #c8d8e8;">
         <div style="font-weight:700;font-size:9px;margin-bottom:1px;">เลขประจำตัว</div>
         <div style="font-size:13px;font-weight:700;color:#1a2433;">${s.id}</div>
       </td>
-      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;border-right:1px solid #c8d8e8;">
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;">
         <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ชื่อ - สกุล</div>
         <div style="font-size:13px;font-weight:700;color:#1a2433;">${s.name}</div>
       </td>
-      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:22%;border-right:1px solid #c8d8e8;">
+    </tr>
+    <tr style="background:#f0f7ff;border-top:1px solid #c8d8e8;">
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;border-right:1px solid #c8d8e8;">
         <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ระดับชั้น</div>
-        <div style="font-size:12px;color:#1a2433;">${termYear}</div>
+        <div style="font-size:12px;font-weight:700;color:#1a2433;">${school.grade||'-'}</div>
       </td>
-      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;width:22%;">
-        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ครูผู้ประเมิน</div>
-        <div style="font-size:12px;color:#1a2433;">${school.teacher||'-'}</div>
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;border-right:1px solid #c8d8e8;">
+        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ห้อง</div>
+        <div style="font-size:12px;font-weight:700;color:#1a2433;">${(school.room||'').split('/')[0]||'-'}</div>
+      </td>
+      <td style="padding:6px 10px;font-size:11px;color:#5a6a7a;">
+        <div style="font-weight:700;font-size:9px;margin-bottom:1px;">ปีการศึกษา</div>
+        <div style="font-size:12px;font-weight:700;color:#1a2433;">${(school.room||'').split('/')[1]||'2568'}</div>
       </td>
     </tr>
   </table>
@@ -1693,7 +1699,7 @@ function printReportHTML(pages,schoolStr){
     *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
     body{font-family:'Sarabun',sans-serif;color:#1a2433;font-size:13px;}
     table{width:100%;border-collapse:collapse;}
-    .page-block{padding:20mm 18mm;min-height:100vh;}
+    .page-block{padding:20mm 18mm;}
     .print-footer{margin-top:20px;padding-top:8px;border-top:1px solid #ddd;text-align:center;font-size:10px;color:#999;}
     @media print{
       @page{size:A4 portrait;margin:0;}
