@@ -218,8 +218,8 @@ html,body{height:100%;overflow:hidden;font-family:'Sarabun',sans-serif;backgroun
 .cover-chart-title{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .cover-sign-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
 .cover-sign-box{background:var(--bg);border-radius:10px;padding:14px 12px;text-align:center;}
-.cover-sign-line{border-bottom:1.5px dashed var(--border);margin:18px 8px 6px;height:1px;}
-.cover-sign-role{font-size:11px;color:var(--text2);font-weight:600;}
+.cover-sign-line{border-bottom:1.5px dashed var(--border);margin:0 8px 6px;height:1px;}
+.cover-sign-role{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:0;}
 .cover-sign-name{font-size:12px;font-weight:700;margin-top:3px;color:var(--text);}
 .cover-sign-pos{font-size:11px;color:var(--text2);margin-top:2px;}
 </style>
@@ -952,13 +952,12 @@ function buildCoverChartSVG(forPrint){
     if(!students.length)return 0;
     return Math.round(students.reduce((sum,s)=>sum+getCS(s,c.id),0)/students.length*10)/10;
   });
-  const W=forPrint?500:320, H=forPrint?190:155;
-  const PAD_L=forPrint?30:20,PAD_R=forPrint?20:10,PAD_T=forPrint?30:24,PAD_B=forPrint?50:44;
+  const W=forPrint?460:320, H=forPrint?190:155;
+  const PAD_L=forPrint?30:20,PAD_R=forPrint?30:10,PAD_T=forPrint?30:24,PAD_B=forPrint?50:44;
   const n=COMP.length;
   const barW=Math.floor((W-PAD_L-PAD_R)/n*0.55);
   const gap=(W-PAD_L-PAD_R-barW*n)/(n+1);
   const chartH=H-PAD_T-PAD_B;
-  const maxPct=100;
 
   let bars='';
   COMP.forEach((c,i)=>{
@@ -970,9 +969,7 @@ function buildCoverChartSVG(forPrint){
     const fs=forPrint?10:8;
     const labelFs=forPrint?9:7.5;
     // แท่ง
-    if(bH>0) bars+=`<rect x="${x}" y="${y}" width="${barW}" height="${bH}" rx="3" fill="${c.color}"/>`;
-    // พื้นหลังแท่ง (ส่วนที่ยังไม่ถึง)
-    bars+=`<rect x="${x}" y="${PAD_T}" width="${barW}" height="${chartH-bH}" rx="3" fill="#ecf0f1"/>`;
+    bars+=`<rect x="${x}" y="${PAD_T}" width="${barW}" height="${chartH}" rx="3" fill="#ecf0f1"/>`;
     if(bH>0) bars+=`<rect x="${x}" y="${y}" width="${barW}" height="${bH}" rx="3" fill="${c.color}"/>`;
     // % บนแท่ง
     bars+=`<text x="${x+barW/2}" y="${y-4}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${c.color}" font-family="Sarabun,sans-serif">${p}%</text>`;
@@ -1860,7 +1857,7 @@ function buildBookCoverHTML(school,logoHtml,chartSVG,legendHtml,statsRow,thaiDat
       </table>
     </div>
     <div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:6px;border-left:4px solid #f0a500;padding-left:8px;">กราฟค่าเฉลี่ยสมรรถนะ 6 ด้าน (ร้อยละ)</div>
-    ${chartSVG}
+    <div style="overflow:visible;">${chartSVG}</div>
     <div style="margin-top:6px;line-height:1.8">${legendHtml}</div>
     <table style="width:100%;border-collapse:separate;border-spacing:6px;margin-top:10px;">
       <tr>
