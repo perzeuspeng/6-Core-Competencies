@@ -1881,7 +1881,7 @@ function buildBookCoverHTML(school,logoHtml,chartSVG,legendHtml,statsRow,thaiDat
 }
 
 // ===== BOOK: สร้าง HTML ข้อมูลนักเรียน =====
-function buildBookDataHTML(school,thaiDate){
+function buildBookDataHTML(school){
   const rows=students.map(s=>`<tr style="border-bottom:1px solid #ddd;"><td style="padding:6px 8px;text-align:center;">${s.no}</td><td style="padding:6px 8px;">${s.id}</td><td style="padding:6px 8px;">${s.name}</td></tr>`).join('');
   return `<div style="font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid #1a3a5c;">รายชื่อนักเรียน</div>
   <div style="font-size:12px;color:#555;margin-bottom:12px;">โรงเรียน${school.name||''} · ระดับชั้น ${school.grade||''} ห้อง ${(school.room||'').split('/')[0]||''} · ปีการศึกษา ${(school.room||'').split('/')[1]||'2568'}</div>
@@ -1897,12 +1897,11 @@ function buildBookDataHTML(school,thaiDate){
     <div>ลงชื่อ .............................................ผู้ประเมิน</div>
     <div>(${school.teacher||'...................................'})</div>
     <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
-    <div style="font-size:11px;color:#888;">วันที่ ${thaiDate||''}</div>
   </div>`;
 }
 
 // ===== BOOK: สร้าง HTML คะแนนแต่ละสมรรถนะ =====
-function buildBookScoresHTML(school,thaiDate){
+function buildBookScoresHTML(school){
   return COMP.map(c=>{
     const indTable=`<div style="margin-bottom:10px;border:1px solid #c8d8e8;border-radius:6px;overflow:hidden;">
       <div style="background:${c.color};color:white;padding:7px 12px;font-size:12px;font-weight:700;">สมรรถนะที่ ${c.id}: ${c.name} · คะแนนเต็ม ${c.max} คะแนน</div>
@@ -1923,12 +1922,12 @@ function buildBookScoresHTML(school,thaiDate){
       <thead><tr style="background:#1a3a5c;color:white;"><th style="padding:6px;">ที่</th><th style="padding:6px;text-align:left;">ชื่อ - สกุล</th>${c.ind.map((_,i)=>`<th style="padding:6px;">ข้อ ${i+1}</th>`).join('')}<th style="padding:6px;">รวม</th><th style="padding:6px;">%</th><th style="padding:6px;">ผล</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div style="text-align:center;font-size:12px;color:#333;line-height:2;margin-top:20px;"><div>ลงชื่อ .............................................ผู้ประเมิน</div><div>(${school.teacher||'...................................'})</div><div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div><div style="font-size:11px;color:#888;">วันที่ ${thaiDate||''}</div></div>`;
+    <div style="text-align:center;font-size:12px;color:#333;line-height:2;margin-top:20px;"><div>ลงชื่อ .............................................ผู้ประเมิน</div><div>(${school.teacher||'...................................'})</div><div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div></div>`;
   });
 }
 
 // ===== BOOK: สร้าง HTML สรุปผลภาพรวม =====
-function buildBookSummaryHTML(school,thaiDate){
+function buildBookSummaryHTML(school){
   const cts={above:0,capable:0,developing:0,beginning:0};
   students.forEach(s=>{cts[getLevel(pct(getTS(s),TOTAL_MAX)).cls]++;});
   const avgScores=COMP.map(c=>students.length?Math.round(students.reduce((sum,s)=>sum+getCS(s,c.id),0)/students.length*10)/10:0);
@@ -1966,7 +1965,7 @@ function buildBookSummaryHTML(school,thaiDate){
     <thead><tr style="background:#1a3a5c;color:white;"><th style="padding:5px;">ที่</th><th style="padding:5px;text-align:left;">ชื่อ - สกุล</th>${COMP.map(c=>`<th style="padding:5px;">ส${c.id}</th>`).join('')}<th style="padding:5px;">รวม</th><th style="padding:5px;">%</th><th style="padding:5px;">ผล</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
-  <div style="text-align:center;font-size:12px;color:#333;line-height:2;margin-top:20px;"><div>ลงชื่อ .............................................ผู้ประเมิน</div><div>(${school.teacher||'...................................'})</div><div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div><div style="font-size:11px;color:#888;">วันที่ ${thaiDate||''}</div></div>`;
+  <div style="text-align:center;font-size:12px;color:#333;line-height:2;margin-top:20px;"><div>ลงชื่อ .............................................ผู้ประเมิน</div><div>(${school.teacher||'...................................'})</div><div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div></div>`;
 }
 
 // ===== BOOK: สร้าง HTML รายงานรวมสมรรถนะ =====
@@ -2091,9 +2090,9 @@ async function generateBookPDF(){
 
     // รวมรายการหน้าทั้งหมด
     const pages=[];
-    if(wantCover) pages.push({label:'📋 หน้าปก',fn:()=>buildBookCoverHTML(school,logoHtml4Cover,chartSVG,legendHtml,'','',thaiDate,schoolStr)});
-    if(wantData)  pages.push({label:'📁 รายชื่อนักเรียน',fn:()=>buildBookDataHTML(school,thaiDate)});
-    if(wantScores) buildBookScoresHTML(school,thaiDate).forEach((h,i)=>pages.push({label:`✏️ คะแนนสมรรถนะที่ ${i+1}`,fn:()=>h}));
+    if(wantCover) pages.push({label:'📋 หน้าปก',fn:()=>buildBookCoverHTML(school,logoHtml4Cover,chartSVG,legendHtml,'',thaiDate,schoolStr)});
+    if(wantData)  pages.push({label:'📁 รายชื่อนักเรียน',fn:()=>buildBookDataHTML(school)});
+    if(wantScores) buildBookScoresHTML(school).forEach((h,i)=>pages.push({label:`✏️ คะแนนสมรรถนะที่ ${i+1}`,fn:()=>h}));
     if(wantIndividual){
       const lvBadgeFn=(cls,label)=>{
         const bg={above:'#d5f5e3',capable:'#d6eaf8',developing:'#fef9e7',beginning:'#fadbd8'};
@@ -2118,7 +2117,7 @@ async function generateBookPDF(){
         }});
       });
     }
-    if(wantSummary)     pages.push({label:'📊 สรุปผล',fn:()=>buildBookSummaryHTML(school,thaiDate)});
+    if(wantSummary)     pages.push({label:'📊 สรุปผล',fn:()=>buildBookSummaryHTML(school)});
     if(wantGroup)       pages.push({label:'📈 รายงานรวม',fn:()=>buildBookGroupReportHTML(school)});
 
     // Render ทีละหน้า
