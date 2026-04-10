@@ -1206,14 +1206,14 @@ function printCoverPage(){
     <table style="width:100%;border-collapse:separate;border-spacing:6px;margin-top:8px;">
       <tr>
         <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 10px;text-align:center;vertical-align:top;">
-          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:16px;">ลงชื่อผู้ประเมิน</div>
+          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:48px;">ลงชื่อผู้ประเมิน</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
           <div style="font-size:12px;font-weight:700;">(${school.teacher||'...................................'})</div>
           <div style="font-size:11px;color:#666;margin-top:3px;">${school.teacherPos||'ผู้ประเมิน'}</div>
           <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ ${thaiDate}</div>
         </td>
         <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 10px;text-align:center;vertical-align:top;">
-          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:16px;">ลงชื่อผู้อนุมัติ</div>
+          <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:48px;">ลงชื่อผู้อนุมัติ</div>
           <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
           <div style="font-size:12px;font-weight:700;">(${school.director||'...................................'})</div>
           <div style="font-size:11px;color:#666;margin-top:3px;">ผู้อำนวยการโรงเรียน${school.name?school.name:''}</div>
@@ -1749,11 +1749,24 @@ function buildStudentReportContent(s,school,logoHtml,compRows,itemRows,total,p,l
   </table>
 
   <!-- ลายเซ็น -->
-  <div style="text-align:center;font-size:12px;color:#333;line-height:1.9;margin-top:8px;">
-    <div>ลงชื่อ .............................................ผู้ประเมิน</div>
-    <div>(${school.teacher||'...................................'})</div>
-    <div>ตำแหน่ง ${school.teacherPos||'พนักงานราชการ'}</div>
-  </div>`;
+  <table style="width:100%;border-collapse:separate;border-spacing:10px;margin-top:16px;">
+    <tr>
+      <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 12px;text-align:center;vertical-align:top;">
+        <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:48px;">ลงชื่อผู้ประเมิน</div>
+        <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
+        <div style="font-size:12px;font-weight:700;">(${school.teacher||'...................................'})</div>
+        <div style="font-size:11px;color:#666;margin-top:3px;">${school.teacherPos||'ผู้ประเมิน'}</div>
+        <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ .......... / .......... / ..........</div>
+      </td>
+      <td style="width:50%;background:#f5f7fa;border-radius:10px;padding:10px 12px;text-align:center;vertical-align:top;">
+        <div style="font-size:10px;font-weight:700;color:#5a6a7a;margin-bottom:48px;">ลงชื่อผู้อนุมัติ</div>
+        <div style="border-bottom:1.5px dashed #bbb;margin:0 12px 8px;"></div>
+        <div style="font-size:12px;font-weight:700;">(${school.director||'...................................'})</div>
+        <div style="font-size:11px;color:#666;margin-top:3px;">ผู้อำนวยการโรงเรียน${school.name?school.name:''}</div>
+        <div style="font-size:10px;color:#888;margin-top:6px;">วันที่ .......... / .......... / ..........</div>
+      </td>
+    </tr>
+  </table>`;
 }
 
 function printReportHTML(pages,schoolStr){
