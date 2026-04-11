@@ -1442,7 +1442,6 @@ function triggerPrint(){
       <div>ลงชื่อ ................................................ผู้ประเมิน</div>
       <div>(${school.teacher||'...................................'})</div>
       <div>ตำแหน่ง ${school.teacherPos||'ผู้ประเมิน'}</div>
-      <div style="font-size:11px;color:#888;margin-top:4px;">วันที่ ${thaiDate}</div>
     </div>`;
     printHTML(hdr+`<h2>รายชื่อนักเรียน</h2><p>โรงเรียน${school.name} · ${school.grade}/${school.room} · ปีการศึกษา 2568</p></div><table border="1" cellpadding="8" style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a3a5c;color:white"><th>ที่</th><th>เลขประจำตัว</th><th>ชื่อ - สกุล</th></tr></thead><tbody>${rows}</tbody></table>${signBlock}`);
   } else if(currentPage==='scores'){
