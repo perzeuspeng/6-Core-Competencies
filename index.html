@@ -2097,7 +2097,7 @@ async function generateBookPDF(){
 
     // รวมรายการหน้าทั้งหมด
     const pages=[];
-    if(wantCover) pages.push({label:'📋 หน้าปก',fn:()=>buildBookCoverHTML(school,logoHtml4Cover,chartSVG,legendHtml,'','',thaiDate,schoolStr)});
+    if(wantCover) pages.push({label:'📋 หน้าปก',fn:()=>buildBookCoverHTML(school,logoHtml4Cover,chartSVG,legendHtml,'',thaiDate,schoolStr)});
     if(wantData)  pages.push({label:'📁 รายชื่อนักเรียน',fn:()=>buildBookDataHTML(school)});
     if(wantScores) buildBookScoresHTML(school).forEach((h,i)=>pages.push({label:`✏️ คะแนนสมรรถนะที่ ${i+1}`,fn:()=>h}));
     if(wantIndividual){
